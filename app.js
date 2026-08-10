@@ -112,6 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCloseApiModal = document.getElementById('btn-close-api-modal');
   const apiKeyInput = document.getElementById('api-key-input');
   const apiModelSelect = document.getElementById('api-model-select');
+  const btnFetchModels = document.getElementById('btn-fetch-models');
+  const modelFetchStatus = document.getElementById('model-fetch-status');
   const btnSaveApi = document.getElementById('btn-save-api');
 
   const btnHistory = document.getElementById('btn-history');
@@ -398,22 +400,102 @@ ${focus}
   });
 
   // ==========================================
-  // 5. Gemini API Direct Generation
+  // 5. Gemini API Direct Generation & Model Service
   // ==========================================
+
+  async function fetchAvailableModels(keyToUse, isQuiet = false) {
+    const key = (keyToUse || (apiKeyInput ? apiKeyInput.value.trim() : '') || state.apiKey).trim();
+    if (!key) {
+      if (modelFetchStatus && !isQuiet) {
+        modelFetchStatus.textContent = 'APIキーを入力してからクリックしてください';
+        modelFetchStatus.style.display = 'block';
+        modelFetchStatus.style.color = '#ff6b6b';
+      }
+      return [];
+    }
+
+    if (btnFetchModels && !isQuiet) {
+      btnFetchModels.disabled = true;
+      btnFetchModels.textContent = '取得中...';
+    }
+    if (modelFetchStatus && !isQuiet) {
+      modelFetchStatus.textContent = '利用可能なモデルを取得中...';
+      modelFetchStatus.style.display = 'block';
+      modelFetchStatus.style.color = 'var(--text-muted)';
+    }
+
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error?.message || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      const rawModels = data.models || [];
+
+      // Filter models supporting generateContent
+      const contentModels = rawModels.filter(m => 
+        m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')
+      ).map(m => ({
+        id: m.name.replace(/^models\//, ''),
+        name: m.displayName || m.name.replace(/^models\//, '')
+      }));
+
+      if (contentModels.length > 0) {
+        if (apiModelSelect) {
+          const prevValue = apiModelSelect.value || state.apiModel;
+          apiModelSelect.innerHTML = '';
+          contentModels.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = `${m.name} (${m.id})`;
+            apiModelSelect.appendChild(opt);
+          });
+
+          // Match or set best model
+          const match = contentModels.find(m => m.id === prevValue);
+          if (match) {
+            apiModelSelect.value = match.id;
+            state.apiModel = match.id;
+          } else {
+            // Priority: flash-latest -> flash-002 -> flash-001 -> flash -> pro-latest -> first
+            const priority = contentModels.find(m => m.id.includes('flash-latest') || m.id.includes('flash-002') || m.id === 'gemini-1.5-flash' || m.id.includes('flash')) || contentModels[0];
+            if (priority) {
+              apiModelSelect.value = priority.id;
+              state.apiModel = priority.id;
+              localStorage.setItem('tamaki_gemini_model', state.apiModel);
+            }
+          }
+        }
+
+        if (modelFetchStatus && !isQuiet) {
+          modelFetchStatus.textContent = `✅ 利用可能モデルを ${contentModels.length} 件取得・設定しました`;
+          modelFetchStatus.style.color = '#38d39f';
+        }
+        return contentModels;
+      } else {
+        throw new Error('テキスト生成対応のモデルが見つかりませんでした');
+      }
+    } catch (err) {
+      console.warn('Fetch models error:', err);
+      if (modelFetchStatus && !isQuiet) {
+        modelFetchStatus.textContent = `取得失敗: ${err.message}`;
+        modelFetchStatus.style.color = '#ff6b6b';
+      }
+      return [];
+    } finally {
+      if (btnFetchModels && !isQuiet) {
+        btnFetchModels.disabled = false;
+        btnFetchModels.textContent = '🔍 利用可能モデルを自動取得';
+      }
+    }
+  }
 
   async function generateWithGemini(prompt, isRewrite = false, rewriteInstruction = "") {
     if (!state.apiKey) {
       openApiModal();
       showToast('Gemini APIキーを設定してください');
       return;
-    }
-
-    // Safety fallback for legacy / invalid models
-    const validModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
-    if (!validModels.includes(state.apiModel) || state.apiModel === 'gemini-2.5-flash') {
-      state.apiModel = 'gemini-1.5-flash';
-      localStorage.setItem('tamaki_gemini_model', state.apiModel);
-      if (apiModelSelect) apiModelSelect.value = state.apiModel;
     }
 
     let finalPrompt = prompt;
@@ -430,8 +512,8 @@ ${rewriteInstruction}`;
     loadingOverlay.classList.remove('hidden');
     loadingText.textContent = isRewrite ? 'たまきぱずず風に推敲中...' : 'たまきぱずず風に執筆中...';
 
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${state.apiModel}:generateContent?key=${state.apiKey}`, {
+    async function executeApiRequest(modelName) {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${state.apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -449,8 +531,10 @@ ${rewriteInstruction}`;
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error?.message || `HTTP error ${response.status}`);
+        const errData = await response.json().catch(() => ({}));
+        const error = new Error(errData.error?.message || `HTTP error ${response.status}`);
+        error.status = response.status;
+        throw error;
       }
 
       const data = await response.json();
@@ -458,6 +542,46 @@ ${rewriteInstruction}`;
 
       if (!generatedText) {
         throw new Error('AIからの応答テキストが空でした');
+      }
+
+      return generatedText;
+    }
+
+    try {
+      let generatedText = '';
+      let targetModel = state.apiModel;
+
+      try {
+        generatedText = await executeApiRequest(targetModel);
+      } catch (firstErr) {
+        console.warn(`Initial call with [${targetModel}] failed:`, firstErr.message);
+        
+        // Auto-recovery: Fetch available models for this specific API key and retry
+        loadingText.textContent = 'APIキーに対応する利用可能モデルを自動検索中...';
+        const availableModels = await fetchAvailableModels(state.apiKey, true);
+
+        if (availableModels && availableModels.length > 0) {
+          // Find the best fallback model that isn't the one that just failed
+          const candidates = availableModels.map(m => m.id).filter(id => id !== targetModel);
+          // Try Flash models first (flash-latest, flash-002, 1.5-flash, pro, etc)
+          const fallbackModel = candidates.find(id => id.includes('flash-latest') || id.includes('flash-002') || id.includes('flash')) || candidates[0];
+
+          if (fallbackModel) {
+            console.log(`Retrying with auto-discovered fallback model: [${fallbackModel}]`);
+            loadingText.textContent = `モデル [${fallbackModel}] で執筆を再試行中...`;
+            generatedText = await executeApiRequest(fallbackModel);
+            
+            // Save and sync the recovered model
+            state.apiModel = fallbackModel;
+            localStorage.setItem('tamaki_gemini_model', state.apiModel);
+            if (apiModelSelect) apiModelSelect.value = state.apiModel;
+            showToast(`モデルを ${fallbackModel} に自動切替して執筆しました！`);
+          } else {
+            throw firstErr;
+          }
+        } else {
+          throw firstErr;
+        }
       }
 
       outputEditor.value = generatedText;
@@ -469,7 +593,7 @@ ${rewriteInstruction}`;
 
     } catch (err) {
       console.error(err);
-      alert(`執筆中にエラーが発生しました:\n${err.message}\n\n※ APIキーが正しいか、設定をご確認ください。`);
+      alert(`執筆中にエラーが発生しました:\n${err.message}\n\n※ 右上の「⚙️ API連携設定」を開き、「🔍 利用可能モデルを自動取得」をクリックして利用可能なモデルを選択してください。`);
     } finally {
       loadingOverlay.classList.add('hidden');
     }
@@ -712,6 +836,10 @@ ${currentText}
   function openApiModal() {
     apiKeyInput.value = state.apiKey;
     apiModelSelect.value = state.apiModel;
+    if (modelFetchStatus) {
+      modelFetchStatus.style.display = 'none';
+      modelFetchStatus.textContent = '';
+    }
     modalApiSettings.classList.remove('hidden');
   }
 
@@ -721,6 +849,12 @@ ${currentText}
 
   btnApiSettings.addEventListener('click', openApiModal);
   btnCloseApiModal.addEventListener('click', closeApiModal);
+
+  if (btnFetchModels) {
+    btnFetchModels.addEventListener('click', () => {
+      fetchAvailableModels(apiKeyInput.value.trim());
+    });
+  }
 
   btnSaveApi.addEventListener('click', () => {
     state.apiKey = apiKeyInput.value.trim();
