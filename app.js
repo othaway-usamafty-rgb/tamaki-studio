@@ -7,9 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // Model Migration / Fallback
   let initialModel = localStorage.getItem('tamaki_gemini_model');
-  const validModels = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-pro', 'gemini-1.5-flash'];
-  if (!initialModel || !validModels.includes(initialModel)) {
-    initialModel = 'gemini-2.0-flash';
+  const validModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+  if (!initialModel || !validModels.includes(initialModel) || initialModel === 'gemini-2.5-flash') {
+    initialModel = 'gemini-1.5-flash';
     localStorage.setItem('tamaki_gemini_model', initialModel);
   }
 
@@ -409,9 +409,9 @@ ${focus}
     }
 
     // Safety fallback for legacy / invalid models
-    const validModels = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-pro', 'gemini-1.5-flash'];
-    if (!validModels.includes(state.apiModel)) {
-      state.apiModel = 'gemini-2.0-flash';
+    const validModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+    if (!validModels.includes(state.apiModel) || state.apiModel === 'gemini-2.5-flash') {
+      state.apiModel = 'gemini-1.5-flash';
       localStorage.setItem('tamaki_gemini_model', state.apiModel);
       if (apiModelSelect) apiModelSelect.value = state.apiModel;
     }
