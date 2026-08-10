@@ -7,9 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // Model Migration / Fallback
   let initialModel = localStorage.getItem('tamaki_gemini_model');
-  const validModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
-  if (!initialModel || !validModels.includes(initialModel) || initialModel === 'gemini-2.5-flash') {
-    initialModel = 'gemini-1.5-flash';
+  if (!initialModel || initialModel.includes('tts') || initialModel.includes('2.5-flash') || initialModel.includes('audio')) {
+    initialModel = 'gemini-1.5-flash-latest';
     localStorage.setItem('tamaki_gemini_model', initialModel);
   }
 
@@ -433,13 +432,40 @@ ${focus}
       const data = await res.json();
       const rawModels = data.models || [];
 
-      // Filter models supporting generateContent
-      const contentModels = rawModels.filter(m => 
-        m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')
-      ).map(m => ({
+      // Filter models strictly for text generation (exclude TTS, Audio, Embedding, Imagen, Realtime, etc.)
+      const contentModels = rawModels.filter(m => {
+        const id = m.name.replace(/^models\//, '').toLowerCase();
+        const hasGenerate = m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent');
+        if (!hasGenerate) return false;
+        
+        // Exclude non-text modalities
+        if (id.includes('tts') || id.includes('audio') || id.includes('embedding') || 
+            id.includes('imagen') || id.includes('aqa') || id.includes('realtime') || id.includes('live')) {
+          return false;
+        }
+
+        // Must be a gemini model
+        return id.startsWith('gemini-');
+      }).map(m => ({
         id: m.name.replace(/^models\//, ''),
         name: m.displayName || m.name.replace(/^models\//, '')
       }));
+
+      // Sort models: Flash (latest/002/001) -> Pro (latest/002/001) -> Flash 2.0 -> others
+      contentModels.sort((a, b) => {
+        const score = (id) => {
+          if (id.includes('1.5-flash-latest')) return 100;
+          if (id.includes('1.5-flash-002')) return 95;
+          if (id.includes('1.5-flash-001')) return 90;
+          if (id === 'gemini-1.5-flash') return 85;
+          if (id.includes('1.5-pro-latest')) return 80;
+          if (id.includes('1.5-pro-002')) return 75;
+          if (id.includes('1.5-pro')) return 70;
+          if (id.includes('2.0-flash')) return 60;
+          return 10;
+        };
+        return score(b.id) - score(a.id);
+      });
 
       if (contentModels.length > 0) {
         if (apiModelSelect) {
@@ -452,19 +478,16 @@ ${focus}
             apiModelSelect.appendChild(opt);
           });
 
-          // Match or set best model
-          const match = contentModels.find(m => m.id === prevValue);
+          // Match or set best text model
+          const match = contentModels.find(m => m.id === prevValue && !m.id.includes('tts'));
           if (match) {
             apiModelSelect.value = match.id;
             state.apiModel = match.id;
           } else {
-            // Priority: flash-latest -> flash-002 -> flash-001 -> flash -> pro-latest -> first
-            const priority = contentModels.find(m => m.id.includes('flash-latest') || m.id.includes('flash-002') || m.id === 'gemini-1.5-flash' || m.id.includes('flash')) || contentModels[0];
-            if (priority) {
-              apiModelSelect.value = priority.id;
-              state.apiModel = priority.id;
-              localStorage.setItem('tamaki_gemini_model', state.apiModel);
-            }
+            const best = contentModels[0];
+            apiModelSelect.value = best.id;
+            state.apiModel = best.id;
+            localStorage.setItem('tamaki_gemini_model', state.apiModel);
           }
         }
 
@@ -496,6 +519,13 @@ ${focus}
       openApiModal();
       showToast('Gemini APIキーを設定してください');
       return;
+    }
+
+    // Safety guard against TTS/Audio/Legacy models
+    if (!state.apiModel || state.apiModel.includes('tts') || state.apiModel.includes('audio') || state.apiModel.includes('2.5-flash')) {
+      state.apiModel = 'gemini-1.5-flash-latest';
+      localStorage.setItem('tamaki_gemini_model', state.apiModel);
+      if (apiModelSelect) apiModelSelect.value = state.apiModel;
     }
 
     let finalPrompt = prompt;
