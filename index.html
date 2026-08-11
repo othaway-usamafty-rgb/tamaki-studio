@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tamaki Studio | たまきぱずず風 執筆工房</title>
-  <meta name="description" content="たまきぱずず氏特有の文体・思考様式（鋭いメタ認知・高い解像度・宇宙世紀原理主義・生々しいリアリズム・軽妙なオチ）を再現する専用執筆支援スタジオ">
+  <title>Tamaki Studio v2.0 | たまきぱずず専属 執筆工房</title>
+  <meta name="description" content="たまきぱずず氏特有の文体・思考様式（鋭いメタ認知・高い解像度・宇宙世紀原理主義・生々しいリアリズム・軽妙なオチ）を完全再現する専用執筆支援スタジオ">
   
   <!-- iPhone / PWA Mobile App Support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -31,11 +31,15 @@
           </svg>
         </div>
         <div class="brand-text">
-          <h1>Tamaki Studio <span class="badge">v1.0</span></h1>
-          <p class="subtitle">たまきぱずず風 文書執筆・プロンプト生成工房</p>
+          <h1>Tamaki Studio <span class="badge badge-pulse">v2.0 Pro</span></h1>
+          <p class="subtitle">たまきぱずず専属 文書執筆・原稿解析・プロンプト生成工房</p>
         </div>
       </div>
       <div class="header-actions">
+        <button id="btn-guide" class="btn-secondary btn-sm" title="取扱説明書・ガイド">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          <span>取扱説明書</span>
+        </button>
         <button id="btn-api-settings" class="btn-secondary btn-sm" title="API設定">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
           <span>API連携設定</span>
@@ -51,6 +55,33 @@
     <main class="workspace-grid">
       <!-- Left Panel: Input & Control -->
       <section class="panel input-panel">
+        
+        <!-- Document Drop Zone (v2.0 New Feature) -->
+        <div class="drop-zone-card" id="drop-zone">
+          <input type="file" id="file-input" accept=".md,.txt,.json" class="hidden-file-input">
+          <div class="drop-zone-inner" id="drop-zone-inner">
+            <div class="drop-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="12" y2="12"></line><line x1="15" y1="15" x2="12" y2="12"></line></svg>
+            </div>
+            <div class="drop-text">
+              <span class="drop-title">📄 過去原稿・メモをドロップして読み込み</span>
+              <span class="drop-sub">（.md / .txt ファイルをドロップ または <span class="drop-link">ファイル選択</span>）</span>
+            </div>
+          </div>
+          <!-- Loaded Document Status Bar -->
+          <div class="loaded-doc-bar hidden" id="loaded-doc-bar">
+            <div class="doc-info">
+              <span class="doc-badge">読込原稿</span>
+              <span class="doc-name" id="loaded-doc-name">note_subculture.md</span>
+              <span class="doc-chars" id="loaded-doc-chars">(0文字)</span>
+            </div>
+            <div class="doc-actions">
+              <button type="button" id="btn-apply-doc-form" class="btn-text-sm" title="原稿からフォームへ要点を自動展開">フォームへ展開</button>
+              <button type="button" id="btn-clear-doc" class="btn-text-sm text-danger" title="原稿の読み込みを解除">&times; 解除</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Mode Tabs -->
         <div class="mode-tabs-container">
           <div class="tabs-label">執筆ジャンルを選択</div>
@@ -58,17 +89,17 @@
             <button class="mode-tab active" data-mode="essay" id="tab-essay">
               <span class="tab-icon">☕</span>
               <span class="tab-title">エッセイ・コラム</span>
-              <span class="tab-desc">日常・体験・メタ認知・軽妙なオチ</span>
+              <span class="tab-desc">日常・散財・メタ認知・軽妙なオチ</span>
             </button>
             <button class="mode-tab" data-mode="subculture" id="tab-subculture">
               <span class="tab-icon">🤖</span>
               <span class="tab-title">ガンダム・論考</span>
-              <span class="tab-desc">宇宙世紀原理主義・IPvs本質・科学考察</span>
+              <span class="tab-desc">宇宙世紀原理主義・トミノ節・SF考証</span>
             </button>
             <button class="mode-tab" data-mode="novel" id="tab-novel">
               <span class="tab-icon">📖</span>
               <span class="tab-title">小説・官能描写</span>
-              <span class="tab-desc">五感解像度・生々しいセリフ・大人の情念</span>
+              <span class="tab-desc">五感解像度・冷徹なメタ認知・大人の機微</span>
             </button>
           </div>
         </div>
@@ -77,10 +108,34 @@
         <div class="form-container">
           <div class="form-header">
             <h2 id="form-title">☕ エッセイ執筆設定</h2>
-            <button type="button" id="btn-load-sample" class="btn-text">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              例文を読み込む
-            </button>
+            <div class="preset-selector-wrapper">
+              <select id="preset-selector" class="preset-dropdown" title="代表的なプリセット原稿を選択">
+                <option value="" disabled selected>✨ 例文プリセットを選択...</option>
+                <optgroup label="☕ エッセイ・散財">
+                  <option value="essay_golf">真夏の酷暑ゴルフと冷却ベスト散財</option>
+                  <option value="essay_gadget">最新ガジェット沼と安心感の購入</option>
+                </optgroup>
+                <optgroup label="🤖 ガンダム・サブカル論考">
+                  <option value="subculture_gundam52">ガンダム全52話打ち切りIFとトミノメモ</option>
+                  <option value="subculture_colony">テキサスコロニー建造とメガ・イマジニアリング</option>
+                  <option value="subculture_requiem">復讐のレクイエムと看板(IP)の必然性</option>
+                </optgroup>
+                <optgroup label="📖 小説・官能描写">
+                  <option value="novel_office">雨の夜のオフィスと冷徹なメタ認知</option>
+                  <option value="novel_drive">車内の密室と理性が崩れるグラデーション</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+
+          <!-- Phrase & Thinking Trigger Palette (v2.0 New Feature) -->
+          <div class="palette-container">
+            <div class="palette-header">
+              <span class="palette-title">🧩 たまきぱずず語録・思考トリガー（クリックで挿入）</span>
+            </div>
+            <div class="palette-chips" id="palette-chips">
+              <!-- Dynamically populated based on active mode -->
+            </div>
           </div>
 
           <!-- Essay Fields -->
@@ -115,27 +170,27 @@
           <div class="mode-fields hidden" id="fields-subculture">
             <div class="form-group">
               <label for="subculture-target">対象作品・トピック <span class="required">*</span></label>
-              <input type="text" id="subculture-target" placeholder="例：機動戦士ガンダム 復讐のレクイエム / 閃光のハサウェイ第2部">
+              <input type="text" id="subculture-target" placeholder="例：機動戦士ガンダム 全52話打ち切りIF / テキサスコロニー建造計画">
             </div>
 
             <div class="form-group">
-              <label for="subculture-doubts">感じた違和感・率直な本音 <span class="required">*</span></label>
-              <textarea id="subculture-doubts" rows="3" placeholder="・ガンダムという看板（IP）を掲げているが、本当にガンダムである必然性があるのか？
-・海外向けCGや商業的要請が見え隠れする
-・宇宙世紀の重厚な世界観や泥臭さが記号化されていないか？"></textarea>
-              <span class="hint">IP（看板）と本質を切り分け、率直な引っかかりを記入</span>
+              <label for="subculture-doubts">感じた違和感・率直な本音 / 思考実験 <span class="required">*</span></label>
+              <textarea id="subculture-doubts" rows="3" placeholder="・もし52話まで完走していたら、シャアはア・バオア・クーで戦死してZも逆シャアも消滅していた？
+・打ち切られたからこそガンプラブームが生まれ、作品の純度が高まった逆説。
+・泥とオイルの匂いがする一兵卒視点のリアリズムこそが宇宙世紀の真髄。"></textarea>
+              <span class="hint">看板(IP)と本質を切り分け、オールドタイプ視点の率直な引っかかりを記入</span>
             </div>
 
             <div class="form-group">
-              <label for="subculture-insight">深掘りしたい論点・考察（商業分析・科学的検証）</label>
-              <textarea id="subculture-insight" rows="4" placeholder="・バンダイのグローバル展開とゲーム連動のビジネス構造
-・スペースコロニーの生態系インフラやMS戦の物理的リアリティからのツッコミ
-・オールドタイプ原理主義者としての美学（1st〜逆シャア〜ハサウェイへのこだわり）"></textarea>
+              <label for="subculture-insight">深掘りしたい論点・考察（商業分析・SF技術的検証）</label>
+              <textarea id="subculture-insight" rows="4" placeholder="・トミノメモの精査と、富野由悠季という巨匠がアクシデントを劇薬に変えたドラマ構造。
+・テキサスコロニー等のメガ・イマジニアリング（ISRU現地資源利用、気候制御、生態系パッケージ）。
+・バンダイのビジネスモデルとファンの熱量の化学反応。"></textarea>
             </div>
 
             <div class="form-group">
               <label for="subculture-ending">結びのトーン</label>
-              <input type="text" id="subculture-ending" placeholder="例：期待半分・諦め半分のオールドタイプの愚痴「ま、見るんだけどね」で着地">
+              <input type="text" id="subculture-ending" placeholder="例：「完全に富野御大の掌の上」「今夜は大人しく積みプラのバリでも削る」という老害オタクの自虐着地">
             </div>
           </div>
 
@@ -149,7 +204,7 @@
 
             <div class="form-group">
               <label for="novel-setting">舞台・ロケーション・五感環境 <span class="required">*</span></label>
-              <input type="text" id="novel-setting" placeholder="例：雨の日の夕暮れ、残業後の暗い事務所／地下駐車場の社用車内">
+              <input type="text" id="novel-setting" placeholder="例：雨の日の夕暮れ、残業後の暗い事務所／地下駐車場の車内">
               <span class="hint">雨音、エアコンの送風音、タバコの匂い、シートの革の冷たさなど</span>
             </div>
 
@@ -262,6 +317,55 @@
           </div>
         </div>
 
+        <!-- Real-time Synchro-Meter (v2.0 New Feature) -->
+        <div class="synchro-meter-card" id="synchro-meter-card">
+          <div class="synchro-top">
+            <div class="synchro-score-wrapper">
+              <span class="synchro-label">⚡ たまきぱずず度（文体シンクロ率）:</span>
+              <span class="synchro-score" id="synchro-score-val">0%</span>
+              <span class="synchro-badge" id="synchro-badge">執筆待機中</span>
+            </div>
+            <div class="synchro-bar-bg">
+              <div class="synchro-bar-fill" id="synchro-bar-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="synchro-metrics-grid">
+            <div class="metric-item">
+              <div class="metric-head">
+                <span class="metric-name">🎭 メタ認知・自虐</span>
+                <span class="metric-val" id="metric-meta-val">-</span>
+              </div>
+              <div class="metric-bar"><div class="metric-bar-fill" id="metric-meta-fill" style="width: 0%;"></div></div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-head">
+                <span class="metric-name">🔍 五感・具体性</span>
+                <span class="metric-val" id="metric-detail-val">-</span>
+              </div>
+              <div class="metric-bar"><div class="metric-bar-fill" id="metric-detail-fill" style="width: 0%;"></div></div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-head">
+                <span class="metric-name">⚡ リズム・改行</span>
+                <span class="metric-val" id="metric-tempo-val">-</span>
+              </div>
+              <div class="metric-bar"><div class="metric-bar-fill" id="metric-tempo-fill" style="width: 0%;"></div></div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-head">
+                <span class="metric-name">🍃 オチのキレ</span>
+                <span class="metric-val" id="metric-ending-val">-</span>
+              </div>
+              <div class="metric-bar"><div class="metric-bar-fill" id="metric-ending-fill" style="width: 0%;"></div></div>
+            </div>
+          </div>
+          
+          <div class="synchro-advice" id="synchro-advice">
+            💡 原稿を入力またはAI生成すると、文体の本人度をリアルタイム診断します。
+          </div>
+        </div>
+
         <!-- AI Smell Warning Banner -->
         <div id="ai-smell-alert" class="alert-banner hidden">
           <div class="alert-icon">⚠️</div>
@@ -269,7 +373,7 @@
             <div class="alert-title">AI臭いテンプレ表現が検知されました</div>
             <div class="alert-desc" id="ai-smell-details"></div>
           </div>
-          <button id="btn-fix-smell" class="btn-text-sm">修正のヒント</button>
+          <button id="btn-fix-smell" class="btn-text-sm">ワンクリック消去</button>
         </div>
 
         <!-- Quick Rewrite / Polish Chips -->
@@ -285,13 +389,14 @@
         <div class="editor-wrapper">
           <!-- Text Area for Editing -->
           <textarea id="output-editor" class="editor-textarea" placeholder="ここに生成された文章が表示されます。
-左側の「プロンプトを合成・コピー」でAIチャットに貼るか、「AIで筆者風に直接執筆する」を押してください。"></textarea>
+左側の「プロンプトを合成・コピー」でAIチャットに貼るか、「AIで筆者風に直接執筆する」を押してください。
+もちろん、このエリアで自由に直接加筆・推敲・編集も可能です。"></textarea>
 
           <!-- Loading Overlay -->
           <div id="loading-overlay" class="loading-overlay hidden">
             <div class="spinner"></div>
             <div class="loading-text" id="loading-text">たまきぱずず風に執筆中...</div>
-            <div class="loading-sub">（メタ認知と生々しいディテールを練り込み中）</div>
+            <div class="loading-sub" id="loading-sub">（過去原稿のお手本を参照し、鋭いメタ認知と生々しいディテールを練り込み中）</div>
           </div>
         </div>
 
@@ -374,8 +479,44 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal: Guide / Walkthrough -->
+    <div id="modal-guide" class="modal-backdrop hidden">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h3>📖 Tamaki Studio v2.0 完全取扱説明書</h3>
+          <button class="modal-close" id="btn-close-guide-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="guide-content" style="font-size: 0.875rem; line-height: 1.7; color: var(--text-primary);">
+            <h4 style="color: var(--text-accent); margin-bottom: 0.5rem;">📱 iPhone / スマホでの快適な使い方</h4>
+            <p style="margin-bottom: 0.75rem; color: var(--text-secondary);">
+              Safariの「共有」ボタン →「<strong>ホーム画面に追加</strong>」を行うと、iPhoneのホーム画面から全画面のネイティブアプリ感覚でいつでも一発起動できます。
+            </p>
+
+            <h4 style="color: var(--text-accent); margin-top: 1rem; margin-bottom: 0.5rem;">✨ 主な機能と使い方のコツ</h4>
+            <ul style="padding-left: 1.25rem; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; color: var(--text-secondary);">
+              <li><strong style="color: var(--text-primary);">📄 過去原稿ドロップ</strong>: 手持ちの .md / .txt ファイルを放り込むだけで、AIがその文体をお手本として直接模倣。フォームへも一括展開可能。</li>
+              <li><strong style="color: var(--text-primary);">🧩 語録・思考パレット</strong>: 「オールドタイプ原理主義」「安心感を買っているだけ」などの特有フレーズをワンクリックで入力欄へ挿入。</li>
+              <li><strong style="color: var(--text-primary);">🎯 例文プリセット</strong>: 「ガンダム52話打ち切りIF」「テキサスコロニー建造計画」「酷暑ゴルフ散財」などをワンタッチ読込。</li>
+              <li><strong style="color: var(--text-primary);">📊 シンクロ率チェッカー</strong>: 自虐度、五感解像度、改行テンポ、オチのキレをリアルタイム診断。AI特有の綺麗事まとめを自動警告。</li>
+            </ul>
+
+            <h4 style="color: var(--text-accent); margin-top: 1rem; margin-bottom: 0.5rem;">🚀 noteへの投稿フロー</h4>
+            <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem; color: var(--text-secondary);">
+              <li>各項目を入力（またはプリセット／原稿読込）</li>
+              <li>「AIで筆者風に直接執筆」または「プロンプトを合成・コピー」</li>
+              <li>完成文を確認し、「文章をコピー (note用)」を押してnote新規投稿に貼り付け！</li>
+            </ol>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-close-guide-footer" class="btn-primary btn-sm">閉じる</button>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <script src="app.js?v=2.0.4"></script>
+  <script src="app.js?v=2.0.0"></script>
 </body>
 </html>
