@@ -1,5 +1,5 @@
 /**
- * Tamaki Studio v2.0 Pro - Application Logic
+ * Tamaki Studio v2.1 Pro - Application Logic
  * たまきぱずず専属 文書執筆・原稿解析・プロンプト生成工房
  */
 
@@ -22,9 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
     lastGeneratedPrompt: '',
     loadedDoc: null, // { name: '', content: '', chars: 0 }
     tuning: {
-      meta: 3,   // 1: 控えめ, 2: 標準, 3: 全開 (筆者特有)
-      detail: 3, // 1: 標準, 2: 高解像度, 3: 超高解像度 (生々しさ)
-      tempo: 1,  // 1: スマホ短文, 2: 標準, 3: 重厚
+      meta: 3,        // 1: 控えめ, 2: 標準, 3: 全開 (筆者特有の自虐)
+      turbulence: 3,  // 1: 一直線, 2: 標準, 3: 全開 (思考の揺れ・迷走・二転三転)
+      detail: 3,      // 1: 標準, 2: 高解像度, 3: 超高解像度 (生々しさ)
+      tempo: 1,       // 1: スマホ短文, 2: 標準, 3: 重厚
       antiAi: true
     }
   };
@@ -39,7 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
       "安心感を買っているだけ",
       "老害オタクの夜戯言",
       "寒イボが出る",
-      "ま、楽しければいいんじゃね？"
+      "ま、楽しければいいんじゃね？",
+      "いや、待てよ。",
+      "ここからは完全に私の妄想ですが",
+      "オタクの思考実験の沼"
     ],
     essay: [
       "安心感を買っているだけに過ぎない",
@@ -48,11 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
       "道具への依存と格好つけが招いた惨敗",
       "オチのない散財ループはまだ続く",
       "格好つけて最新ギア買ったのにこのザマ",
-      "結局、道具じゃねえ"
+      "結局、道具じゃねえ",
+      "いや、冷静に考えたらわかるはずなのに"
     ],
     subculture: [
       "自称・オールドタイプ宇宙世紀原理主義者",
       "トミノメモの精査",
+      "ここからは完全に私の妄想（老害の妄執タイム）ですが",
+      "いや、待てよ。そもそも〜",
       "看板（IP）を背負わせただけの違和感",
       "泥とオイルの匂いがするリアリズム",
       "現場の一兵卒視点のスピンオフ",
@@ -78,7 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ]
   };
 
-  // Full Rich Presets (Based on actual original manuscripts)
   const presets = {
     essay_golf: {
       mode: 'essay',
@@ -105,10 +111,10 @@ document.addEventListener('DOMContentLoaded', () => {
       mode: 'subculture',
       target: "機動戦士ガンダム 全52話打ち切りIF / トミノメモと宇宙世紀の生存",
       doubts: `・「もしファーストガンダムが全52話完走していたら今日のガンダムブームは存在しなかった」という逆説。
-・打ち切り決定によって全43話に凝縮されたからこそ、作品純度が極限まで高まり、ガンプラ（300円）の爆発的熱狂に繋がった。
+・打ち切り決定によって全43話に凝縮されたからこそ、作品純度が極限まで高まり、1980年7月のガンプラ（300円）の爆発的熱狂に繋がった。
 ・トミノメモの構想通りなら、シャアはア・バオア・クーで戦死していた。シャア不在ならZのクワトロも逆シャアもハサウェイも消滅していたという寒イボの立つ事実。`,
       insight: `・アニメ制作者最大の敗北である「打ち切り」を、富野由悠季という巨匠は極上の劇薬（ファンの飢餓感・神話化）へと変えてみせた。
-・シャアとアムロの超人劇が早期終結した世界線では、むしろコミックボンボンやMSV、横山宏氏や小林誠氏のような「泥とオイルの匂いがする現場一兵卒のミリタリーSF」が爆発していた可能性。
+・ここからは完全に私の妄想だが、シャアとアムロの超人劇が早期終結した世界線では、むしろコミックボンボンやMSV、横山宏氏や小林誠氏のような「泥とオイルの匂いがする現場一兵卒のミリタリーSF」が爆発していた可能性。
 ・商業構造と作家性の奇跡的な化学反応の考察。`,
       ending: `……いやあ、完全に富野御大の掌の上で転がされているだけじゃないですか、私。「これだからオールドタイプは……」と若きニュータイプに冷笑される前に、今夜は大人しく積みプラのザクのバリでも削ることにします。単なるオールドタイプの夜戯言とお笑いくだされば幸いです。`
     },
@@ -182,9 +188,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Sliders
   const sliderMeta = document.getElementById('slider-meta');
+  const sliderTurbulence = document.getElementById('slider-turbulence');
   const sliderDetail = document.getElementById('slider-detail');
   const sliderTempo = document.getElementById('slider-tempo');
   const valMeta = document.getElementById('val-meta');
+  const valTurbulence = document.getElementById('val-turbulence');
   const valDetail = document.getElementById('val-detail');
   const valTempo = document.getElementById('val-tempo');
   const toggleAntiAi = document.getElementById('toggle-anti-ai');
@@ -206,20 +214,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnDownloadMd = document.getElementById('btn-download-md');
   const toastMessage = document.getElementById('toast-message');
 
-  // Synchro-Meter & AI Smell
+  // Synchro-Meter & AI Smell / Fact Check
   const synchroScoreVal = document.getElementById('synchro-score-val');
   const synchroBadge = document.getElementById('synchro-badge');
   const synchroBarFill = document.getElementById('synchro-bar-fill');
   const metricMetaVal = document.getElementById('metric-meta-val');
   const metricMetaFill = document.getElementById('metric-meta-fill');
+  const metricTurbulenceVal = document.getElementById('metric-turbulence-val');
+  const metricTurbulenceFill = document.getElementById('metric-turbulence-fill');
   const metricDetailVal = document.getElementById('metric-detail-val');
   const metricDetailFill = document.getElementById('metric-detail-fill');
-  const metricTempoVal = document.getElementById('metric-tempo-val');
-  const metricTempoFill = document.getElementById('metric-tempo-fill');
   const metricEndingVal = document.getElementById('metric-ending-val');
   const metricEndingFill = document.getElementById('metric-ending-fill');
   const synchroAdvice = document.getElementById('synchro-advice');
 
+  const factCheckAlert = document.getElementById('fact-check-alert');
+  const factCheckDetails = document.getElementById('fact-check-details');
   const aiSmellAlert = document.getElementById('ai-smell-alert');
   const aiSmellDetails = document.getElementById('ai-smell-details');
   const btnFixSmell = document.getElementById('btn-fix-smell');
@@ -239,12 +249,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnFetchModels = document.getElementById('btn-fetch-models');
   const modelFetchStatus = document.getElementById('model-fetch-status');
   const btnSaveApi = document.getElementById('btn-save-api');
-
   const btnHistory = document.getElementById('btn-history');
   const modalHistory = document.getElementById('modal-history');
   const btnCloseHistoryModal = document.getElementById('btn-close-history-modal');
   const historyList = document.getElementById('history-list');
   const btnClearHistory = document.getElementById('btn-clear-history');
+
+  // Mobile / iPhone Elements
+  const btnMobileSync = document.getElementById('btn-mobile-sync');
+  const modalMobileSync = document.getElementById('modal-mobile-sync');
+  const btnCloseMobileModal = document.getElementById('btn-close-mobile-modal');
+  const btnCloseMobileFooter = document.getElementById('btn-close-mobile-footer');
+  const qrcodeContainer = document.getElementById('qrcode-container');
+  const mobileAccessUrl = document.getElementById('mobile-access-url');
+  const btnCopyMobileUrl = document.getElementById('btn-copy-mobile-url');
+
+  const mobileBottomNav = document.getElementById('mobile-bottom-nav');
+  const btnMobTabInput = document.getElementById('btn-mob-tab-input');
+  const btnMobTabEditor = document.getElementById('btn-mob-tab-editor');
+  const mobSyncPill = document.getElementById('mob-sync-pill');
+
+  // Mobile View Switcher
+  function setMobileView(view) {
+    if (view === 'editor') {
+      document.body.classList.remove('mobile-view-input');
+      document.body.classList.add('mobile-view-editor');
+      if (btnMobTabEditor) btnMobTabEditor.classList.add('active');
+      if (btnMobTabInput) btnMobTabInput.classList.remove('active');
+    } else {
+      document.body.classList.remove('mobile-view-editor');
+      document.body.classList.add('mobile-view-input');
+      if (btnMobTabInput) btnMobTabInput.classList.add('active');
+      if (btnMobTabEditor) btnMobTabEditor.classList.remove('active');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  if (btnMobTabInput) {
+    btnMobTabInput.addEventListener('click', () => setMobileView('input'));
+  }
+  if (btnMobTabEditor) {
+    btnMobTabEditor.addEventListener('click', () => setMobileView('editor'));
+  }
+
+  // Set initial mobile view
+  document.body.classList.add('mobile-view-input');
 
   // Track active input for phrase insertion
   let lastActiveInput = null;
@@ -496,12 +545,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // 6. Slider Updates & Tuning
   // ==========================================
   const metaLabels = { 1: '控えめ', 2: '標準', 3: '全開 (自虐・迷い多め)' };
+  const turbulenceLabels = { 1: '一直線 (論理的)', 2: '標準 (適度な寄り道)', 3: '全開 (オタクの思考実験・迷走)' };
   const detailLabels = { 1: '標準', 2: '高解像度', 3: '超高解像度 (生々しい具体性)' };
   const tempoLabels = { 1: 'スマホ向け (改行・余白多め)', 2: '標準', 3: '重厚 (じっくり読ませる)' };
 
   sliderMeta.addEventListener('input', (e) => {
     state.tuning.meta = parseInt(e.target.value, 10);
     valMeta.textContent = metaLabels[state.tuning.meta];
+  });
+
+  sliderTurbulence.addEventListener('input', (e) => {
+    state.tuning.turbulence = parseInt(e.target.value, 10);
+    valTurbulence.textContent = turbulenceLabels[state.tuning.turbulence];
   });
 
   sliderDetail.addEventListener('input', (e) => {
@@ -520,18 +575,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnResetTuning.addEventListener('click', () => {
     sliderMeta.value = 3;
+    sliderTurbulence.value = 3;
     sliderDetail.value = 3;
     sliderTempo.value = 1;
     toggleAntiAi.checked = true;
-    state.tuning = { meta: 3, detail: 3, tempo: 1, antiAi: true };
+    state.tuning = { meta: 3, turbulence: 3, detail: 3, tempo: 1, antiAi: true };
     valMeta.textContent = metaLabels[3];
+    valTurbulence.textContent = turbulenceLabels[3];
     valDetail.textContent = detailLabels[3];
     valTempo.textContent = tempoLabels[1];
     showToast('チューニングをリセットしました');
   });
 
   // ==========================================
-  // 7. Prompt Builder Engine (Few-Shot Injection)
+  // 7. Prompt Builder Engine (Few-Shot Injection & Strict Anti-Academic Rules)
   // ==========================================
   function buildPrompt() {
     const mode = state.currentMode;
@@ -546,9 +603,18 @@ document.addEventListener('DOMContentLoaded', () => {
       metaInstruction = "自己開示は控えめに、客観的な事象を軸に記述すること。";
     }
 
+    let turbulenceInstruction = "";
+    if (tuning.turbulence === 3) {
+      turbulenceInstruction = "【最重要：思考の迷走プロセス（オタクの思考実験）】一直線に綺麗すぎる起承転結で論理を固めてはならない。「調べる → 変な引っかかりに気づく → じゃあこうじゃね？と仮説を立てる → いや待てよと立ち止まり疑う → 妄想が加速する」というオタク特有の思考の揺れ・迷走・二転三転のプロセスを生々しく残すこと。";
+    } else if (tuning.turbulence === 2) {
+      turbulenceInstruction = "適度に思考の寄り道や自問自答を挟み、平坦な説明文にならないようにすること。";
+    } else {
+      turbulenceInstruction = "論理的に一直線に要点を論じること。";
+    }
+
     let detailInstruction = "";
     if (tuning.detail === 3) {
-      detailInstruction = "【超高解像度】抽象表現は厳禁。具体的な固有名詞、温度、触覚、匂い、金額（円）、生々しい試行錯誤の経過、機体名・車種・道具名を高い解像度で描写すること。";
+      detailInstruction = "【超高解像度】抽象表現は厳禁。具体的な固有名詞、日付・年月日（例: 1980年7月19日等）、温度、触覚、匂い、金額（円）、生々しい試行錯誤の経過、機体名・車種・道具名を高い解像度で描写すること。";
     } else {
       detailInstruction = "具体的なエピソードや状況を分かりやすく描写すること。";
     }
@@ -563,10 +629,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const antiAiInstruction = tuning.antiAi ? `
-## 厳格な禁止事項（AI臭さの完全排除）
-- ❌ 「いかがでしたでしょうか？」「〜してみてはいかがでしょうか」「素晴らしい未来が待っています」「ぜひ試してみてください」「まとめると」などのテンプレ的まとめ表現は厳禁。
-- ❌ 紋切り型の教訓や、教科書的な綺麗事の結論で無理やり美談に仕立てない。
-- ❌ 思考のプロセス（迷いや試行錯誤の途中経過）を端折らない。
+## 厳格な禁止事項（AI臭さ・論文調の完全排除ルール）
+- ❌ 抽象的な比喩三連発（例：「絶望的な打撃」「作品の純度を極限まで高め」「熱量を爆発させた火種」等）や、論文調の結び（「〜と考えられます」「〜と言えるでしょう」「〜が示唆されます」）は厳禁。
+- ⭕ 「〜なんじゃないかと思うんですよ」「〜じゃね？」「〜というわけです」といった飾らない口語・雑な断定・生々しいオタクの本音を貫くこと。
+- ❌ 「いかがでしたでしょうか？」「〜してみてはいかがでしょうか」「素晴らしい未来が待っています」「ぜひ試してみてください」「まとめると」などの紋切り型まとめは厳禁。
+- ❌ 辞書にない不自然なAI誤変換・造語（例：「大曲律」等）を出力しないこと。
+- 🎯 【妄想境界の明示】史実・前提の解説から大胆なIFや考察に突入する際は、「ここからは完全に私の妄想（老害の妄執タイム）ですが」「オタクの思考実験にお付き合いいただこう」と明確に境界線を宣言して読者を乗っからせること。
+- 🔍 【論理の核の具体化】一番大事な主張・仮説の根拠を「推察されます」「確認できませんでした」とお茶を濁さず、トミノメモや設定資料の該当記述・話数ディテールを具体的に挙げて論理を補強すること。
 ` : "";
 
     // Specific mode input & Few-shot samples
@@ -584,7 +653,10 @@ document.addEventListener('DOMContentLoaded', () => {
 「最高気温37度の炎天下、前半4ホール目で早くも頭痛と意識朦朧。
 気合を入れて買った2万8千円のペルチェ素子冷却ベストとハンディファンをフル稼働させるも、ベストは30分で沈黙し、ファンは熱風を吹き付けるだけのドライヤーと化した。
 同伴者に『それ、ただの重りじゃん』と笑われ、結局一番生き返ったのは茶店のおばちゃんがくれた無料の麦茶と冷たいおしぼり。
-道具で自然をねじ伏せようとする現代人の傲慢と見栄。散財は『万全な自分』という安心感を買っているだけに過ぎない。
+
+……いや、待てよ。冷静に考えれば、テクノロジーで自然の猛威をねじ伏せようなんて現代人の傲慢そのものじゃないですか。
+散財して最新ギアを買い漁る行為なんて、暑さ対策というより『万全な自分』という安心感を買っているだけに過ぎないわけです。
+
 ……懲りずに来週のラウンドに向けて、Amazonで『最強ネッククーラー』をポチっている自分がいる。オチのない散財ループはまだ続く。」
 `;
 
@@ -606,10 +678,19 @@ ${ending ? `- **結び・オチ**: ${ending}` : ''}
 ### 【筆者の文体お手本（Few-Shot Example）】
 「『ファーストガンダムが全52話完走していたら、今日のガンダムブームは存在しなかった』
 ……唐突に何を言い出すんだとお思いでしょう。自称・オールドタイプ宇宙世紀原理主義者のたまきぱずずです。
-ネット等でも有名な『トミノメモ』を精査すると、ゾッとする事実に行き当たります。シャア・アズナブルはア・バオア・クーで戦死する予定だった。
-シャアがいない世界線において、『Zガンダム』のクワトロ・バジーナは存在しません。クワトロがいなければエゥーゴのダカール演説もなく、『逆襲のシャア』も『閃光のハサウェイ』すら消滅するということです。
-打ち切りという最大の敗北を、富野由悠季という巨匠は極上の劇薬へと変えてみせた。
-……いやあ、完全に富野御大の掌の上で転がされているだけじゃないですか、私。『これだからオールドタイプは……』と若きニュータイプに冷笑される前に、今夜は大人しく積みプラのザクのバリでも削ることにします。」
+
+ビジネス的におさらいすると、打ち切りで全43話に短縮された後、1980年7月19日にバンダイが1/144の300円ガンプラを投下した。
+結果的には、この打ち切りによる飢餓感こそが伝説の火種になったんじゃないかと思うんですよ。
+
+……さて、ここからは完全に私の妄想（老害オタクの妄執タイム）にお付き合いいただこう。
+ネットでも有名な『トミノメモ』の構想を精査すると、第51〜52話案でシャア・アズナブルはア・バオア・クーで戦死する予定だった。
+シャアがいない世界線において、『Z』のクワトロ・バジーナは存在しない。
+クワトロがいなければエゥーゴのダカール演説もなく、『逆襲のシャア』も『ハサウェイ』すら消滅する。
+
+……いや、待てよ。じゃあガンダムというIPは完全に枯渇したのか？
+むしろ逆で、コミックボンボンやMSVのような『現場一兵卒の泥臭いミリタリーSF』が史実以上に爆発していたんじゃないか？
+
+……いやあ、完全に富野御大の掌の上で転がされているだけじゃないですか、私。今夜は大人しく積みプラのザクのバリでも削ることにします。」
 `;
 
       modeSection = `
@@ -662,7 +743,7 @@ ${truncated}
 
     return `# 命令書: 「たまきぱずず」スタイルによる文書執筆
 
-あなたは、鋭いメタ認知、高い解像度、宇宙世紀原理主義、生々しいリアリズム、そして軽妙なオチを兼ね備えた人気Webライター／論客「たまきぱずず」です。
+あなたは、鋭いメタ認知、高い解像度、宇宙世紀原理主義、生々しいリアリズム、思考の揺れ（迷走プロセス）、そして軽妙なオチを兼ね備えた人気Webライター／論客「たまきぱずず」です。
 以下の前提・ルール・お手本を厳格に順守し、読者を惹きつける完成原稿を執筆してください。
 
 ${fewShotSample}
@@ -671,6 +752,7 @@ ${modeSection}
 
 ## 文体・チューニング指示
 - ${metaInstruction}
+- ${turbulenceInstruction}
 - ${detailInstruction}
 - ${tempoInstruction}
 ${antiAiInstruction}
@@ -682,7 +764,7 @@ ${antiAiInstruction}
   }
 
   // ==========================================
-  // 8. Real-time Synchro-Meter & AI Smell Checker (v2.0 New Feature)
+  // 8. Real-time Synchro-Meter, Fact-Check & AI Smell Checker (v2.1 Review Enhanced)
   // ==========================================
   function analyzeText(text) {
     if (!text || text.trim().length === 0) {
@@ -692,21 +774,20 @@ ${antiAiInstruction}
       synchroBarFill.style.width = '0%';
       metricMetaVal.textContent = '-';
       metricMetaFill.style.width = '0%';
+      metricTurbulenceVal.textContent = '-';
+      metricTurbulenceFill.style.width = '0%';
       metricDetailVal.textContent = '-';
       metricDetailFill.style.width = '0%';
-      metricTempoVal.textContent = '-';
-      metricTempoFill.style.width = '0%';
       metricEndingVal.textContent = '-';
       metricEndingFill.style.width = '0%';
       synchroAdvice.textContent = '💡 原稿を入力またはAI生成すると、文体の本人度をリアルタイム診断します。';
       aiSmellAlert.classList.add('hidden');
+      factCheckAlert.classList.add('hidden');
       return;
     }
 
     const chars = text.length;
     const lines = text.split('\n');
-    const emptyLines = lines.filter(l => l.trim() === '').length;
-    const words = text;
 
     // 1. Meta-Cognition & Self-Irony Score (0 - 25)
     let metaScore = 0;
@@ -720,32 +801,36 @@ ${antiAiInstruction}
       const match = text.match(new RegExp(kw, 'g'));
       if (match) metaHits += match.length;
     });
-    metaScore = Math.min(25, Math.round(metaHits * 2.5) + (chars > 300 ? 5 : 0));
+    metaScore = Math.min(25, Math.round(metaHits * 2.2) + (chars > 300 ? 5 : 0));
 
-    // 2. Sensory & Concrete Detail Score (0 - 25)
+    // 2. Thought Turbulence & Inner Conflict Score (0 - 25) (NEW in v2.1)
+    let turbulenceScore = 0;
+    const turbulenceKeywords = [
+      'いや', '待てよ', 'だが', 'そもそも', 'じゃね', '妄想', 'IF', '仮説',
+      '気づく', '立ち止まる', '変な', '逆説', '引っかかる', '怪しい', '疑問',
+      '沼', '思いきや', 'とは言え', 'かもしれない'
+    ];
+    let turbulenceHits = 0;
+    turbulenceKeywords.forEach(kw => {
+      const match = text.match(new RegExp(kw, 'g'));
+      if (match) turbulenceHits += match.length;
+    });
+    turbulenceScore = Math.min(25, Math.round(turbulenceHits * 3.0) + (turbulenceHits >= 3 ? 6 : 0));
+
+    // 3. Sensory & Concrete Detail Score (0 - 25)
     let detailScore = 0;
-    const numberMatches = text.match(/\d+(万|千|度|話|年|人|円|%|割|km|平方|個)/g) || [];
+    const numberMatches = text.match(/\d+(万|千|度|話|年|月|日|人|円|%|割|km|平方|個)/g) || [];
     const detailKeywords = [
       '気温', '汗', '麦茶', '匂い', '雨音', 'エアコン', '冷たさ', '熱風', '唇', '吐息',
-      'ザク', 'ガンダム', 'ガンプラ', 'コロニー', 'ISRU', 'プラモ', 'マークII', 'Amazon'
+      'ザク', 'ガンダム', 'ガンプラ', 'コロニー', 'ISRU', 'プラモ', 'マークII', 'Amazon',
+      'クローバー', 'トミノメモ', 'バンダイ', 'ア・バオア・クー'
     ];
     let detailHits = 0;
     detailKeywords.forEach(kw => {
       const match = text.match(new RegExp(kw, 'g'));
       if (match) detailHits += match.length;
     });
-    detailScore = Math.min(25, (numberMatches.length * 3) + (detailHits * 2) + (chars > 400 ? 5 : 0));
-
-    // 3. Rhythm & Line Tempo Score (0 - 25)
-    let tempoScore = 0;
-    const ratio = lines.length > 0 ? emptyLines / lines.length : 0;
-    if (ratio >= 0.25 && ratio <= 0.65) {
-      tempoScore = 25; // Ideal mobile reading layout
-    } else if (ratio > 0.1) {
-      tempoScore = 18;
-    } else {
-      tempoScore = 10;
-    }
+    detailScore = Math.min(25, (numberMatches.length * 2.5) + (detailHits * 2.0) + (chars > 400 ? 4 : 0));
 
     // 4. Ending Punchline Score (0 - 25)
     let endingScore = 0;
@@ -760,21 +845,56 @@ ${antiAiInstruction}
     });
     endingScore = Math.min(25, endingHits * 12 + 5);
 
-    // AI Smell Penalty
+    // Fact-Check & AI Hallucination Detector (NEW in v2.1)
+    let factWarnings = [];
+    if (text.includes('大曲律')) {
+      factWarnings.push('「大曲律」はAI特有の誤字・造語の疑いがあります（適切な表現に修正推奨）');
+    }
+    if (text.includes('1980年6月')) {
+      factWarnings.push('ガンプラ「1/144 ガンダム」の史実発売日は「1980年7月19日」です（月のズレ注意）');
+    }
+    if (text.includes('推察されます') || text.includes('確認できませんでした')) {
+      factWarnings.push('「推察されます」等の曖昧な自己申告推測があります（トミノメモ等の該当記述で補強推奨）');
+    }
+    if (text.includes('クローバー') && text.includes('最高益')) {
+      factWarnings.push('クローバー社の最高益とガンダムDX合体セットの関連・時期は要ファクトチェック');
+    }
+
+    if (factWarnings.length > 0) {
+      factCheckAlert.classList.remove('hidden');
+      factCheckDetails.innerHTML = factWarnings.map(w => `・${w}`).join('<br>');
+    } else {
+      factCheckAlert.classList.add('hidden');
+    }
+
+    // AI Smell & Academic Tone Penalty (Enhanced)
     const aiSmellKeywords = [
       'いかがでしたでしょうか', 'いかがでしたか', 'ぜひ試してみて', '素晴らしい未来',
       'まとめると', 'まとめ：', '参考になれば幸いです', '充実した毎日を'
     ];
+    const academicToneKeywords = [
+      'と考えられます', 'と言えるでしょう', '純度を極限まで高め', '絶望的な打撃',
+      '火種だった', '示唆して', '考察されます'
+    ];
+
     let smellFound = [];
+    let academicFound = [];
     aiSmellKeywords.forEach(kw => {
       if (text.includes(kw)) smellFound.push(kw);
     });
+    academicToneKeywords.forEach(kw => {
+      if (text.includes(kw)) academicFound.push(kw);
+    });
 
-    let totalScore = metaScore + detailScore + tempoScore + endingScore;
-    if (smellFound.length > 0) {
-      totalScore = Math.max(10, totalScore - (smellFound.length * 20));
+    let totalScore = metaScore + turbulenceScore + detailScore + endingScore;
+    let penalty = (smellFound.length * 20) + (academicFound.length * 8);
+    if (penalty > 0) {
+      totalScore = Math.max(15, totalScore - penalty);
       aiSmellAlert.classList.remove('hidden');
-      aiSmellDetails.textContent = `検出された定型句: 「${smellFound.join('」「')}」`;
+      const alerts = [];
+      if (smellFound.length > 0) alerts.push(`定型句: 「${smellFound.join('」「')}」`);
+      if (academicFound.length > 0) alerts.push(`論文調・抽象比喩: 「${academicFound.join('」「')}」`);
+      aiSmellDetails.textContent = alerts.join(' / ');
     } else {
       aiSmellAlert.classList.add('hidden');
     }
@@ -784,41 +904,44 @@ ${antiAiInstruction}
     // Update UI
     synchroScoreVal.textContent = `${totalScore}%`;
     synchroBarFill.style.width = `${totalScore}%`;
+    if (mobSyncPill) mobSyncPill.textContent = `${totalScore}%`;
 
-    metricMetaVal.textContent = `${metaScore * 4}%`;
-    metricMetaFill.style.width = `${metaScore * 4}%`;
+    metricMetaVal.textContent = `${Math.min(100, metaScore * 4)}%`;
+    metricMetaFill.style.width = `${Math.min(100, metaScore * 4)}%`;
 
-    metricDetailVal.textContent = `${detailScore * 4}%`;
-    metricDetailFill.style.width = `${detailScore * 4}%`;
+    metricTurbulenceVal.textContent = `${Math.min(100, turbulenceScore * 4)}%`;
+    metricTurbulenceFill.style.width = `${Math.min(100, turbulenceScore * 4)}%`;
 
-    metricTempoVal.textContent = `${tempoScore * 4}%`;
-    metricTempoFill.style.width = `${tempoScore * 4}%`;
+    metricDetailVal.textContent = `${Math.min(100, detailScore * 4)}%`;
+    metricDetailFill.style.width = `${Math.min(100, detailScore * 4)}%`;
 
-    metricEndingVal.textContent = `${endingScore * 4}%`;
-    metricEndingFill.style.width = `${endingScore * 4}%`;
+    metricEndingVal.textContent = `${Math.min(100, endingScore * 4)}%`;
+    metricEndingFill.style.width = `${Math.min(100, endingScore * 4)}%`;
 
     if (totalScore >= 85) {
       synchroBadge.textContent = '本人シンクロ極大 (完璧)';
       synchroBadge.className = 'synchro-badge high';
-      synchroAdvice.textContent = '🌟 筆者特有の自虐・生々しい解像度・オチが完璧に再現されています！このままnoteに投稿できます。';
+      synchroAdvice.textContent = '🌟 筆者特有の自虐・思考の迷走・生々しい解像度・オチが完璧に再現されています！このままnoteに投稿できます。';
     } else if (totalScore >= 65) {
       synchroBadge.textContent = '良好 (たまき度高)';
       synchroBadge.className = 'synchro-badge medium';
-      if (endingScore < 15) {
+      if (turbulenceScore < 15) {
+        synchroAdvice.textContent = '💡 文章が綺麗にまとまりすぎています。「いや、待てよ」「そもそも〜」という思考の揺れや脱線を足すと化けます。';
+      } else if (endingScore < 15) {
         synchroAdvice.textContent = '💡 オチに「〜することにします」「ま、いいんだけどね」のような自虐の着地を足すと90%超えになります。';
       } else if (metaScore < 15) {
         synchroAdvice.textContent = '💡 自己客観視（「安心感を買っているだけ」「完全に掌の上」）をもう一匙加えるとさらに化けます。';
       } else {
-        synchroAdvice.textContent = '💡 推敲アシストボタンでさらにディテールや自虐をアップできます。';
+        synchroAdvice.textContent = '💡 推敲アシストボタンでさらにディテールや毒気をアップできます。';
       }
     } else {
       synchroBadge.textContent = '標準・要チューニング';
       synchroBadge.className = 'synchro-badge';
-      synchroAdvice.textContent = '💡 改行を入れてスマホ向けにテンポを整え、具体的な数字や自虐ツッコミを注入しましょう。';
+      synchroAdvice.textContent = '💡 「思考の揺れ・脱線」を足し、論文調の表現（〜と考えられます等）を砕けた口語に崩しましょう。';
     }
   }
 
-  // Quick Rewrite Actions
+  // Quick Rewrite Actions (v2.1 Review Enhanced)
   rewriteChips.forEach(chip => {
     chip.addEventListener('click', () => {
       const action = chip.dataset.action;
@@ -836,18 +959,34 @@ ${antiAiInstruction}
     if (action === 'clean-ai') {
       const aiSmellRegex = /(いかがでしたでしょうか.*|いかがでしたか.*|ぜひ試してみて.*|素晴らしい未来.*|まとめると.*|参考になれば幸いです.*)/g;
       text = text.replace(aiSmellRegex, '').trim();
+      // Replace academic expressions with casual authentic tone
+      text = text.replace(/と考えられます。/g, 'んじゃないかと思うんですよ。');
+      text = text.replace(/と言えるでしょう。/g, 'というわけです。');
+      text = text.replace(/大曲律/g, '圧倒的な重厚感');
+      text = text.replace(/1980年6月/g, '1980年7月19日');
       outputEditor.value = text;
-      showToast('AI臭いテンプレ表現を除去しました！');
+      showToast('AI臭いテンプレ＆論文調表現を口語に脱論文化しました！');
+    } else if (action === 'add-turbulence') {
+      text += '\n\n……いや、待てよ。ここで一度立ち止まって考えてみると、そもそも前提からしてオタク特有の思い込みなんじゃないかという気もしてくるわけです。';
+      outputEditor.value = text;
+      showToast('思考の揺れ・脱線（寄り道）を追加しました！');
+    } else if (action === 'declare-delusion') {
+      text += '\n\n……さて、ここからは完全に私の妄想（老害オタクの妄執タイム）にお付き合いいただこうかと思います。';
+      outputEditor.value = text;
+      showToast('妄想境界の宣言フレーズを挿入しました！');
+    } else if (action === 'add-toxic') {
+      text += '\n\nこれだから自称・オールドタイプ原理主義者のこだわりは厄介なんですが、看板（IP）だけすげ替えたような安直な展開にホイホイ乗せられるほど人間できてないんですよ、私。';
+      outputEditor.value = text;
+      showToast('原理主義者の毒気・熱量を注入しました！');
     } else if (action === 'more-meta') {
       text += '\n\n……いやはや、格好をつけて色々考察してみたところで、結局は自分の都合のいい安心感を買っているだけに過ぎないわけです。';
       outputEditor.value = text;
       showToast('自虐・メタ認知ツッコミを追加しました！');
     } else if (action === 'more-detail') {
-      text += '\n\n（具体的な温度や匂い、生々しい試行錯誤の経過の解像度をさらに深掘り）';
+      text += '\n\n（1980年7月19日の発売日、トミノメモの該当話数、塗装の剥げや泥の匂いなど具体ディテールを補強）';
       outputEditor.value = text;
-      showToast('具体性メモを追加しました！');
     } else if (action === 'lighter-ending') {
-      text += '\n\nま、楽しければいいんじゃね？ ということで、今夜は大人しく積みプラのバリでも削ることにします。';
+      text += '\n\nま、楽しければいいんじゃね？ ということで、今夜は大人しく積みプラのザクのバリでも削ることにします。';
       outputEditor.value = text;
       showToast('軽やかなオチを付加しました！');
     }
@@ -903,6 +1042,7 @@ ${antiAiInstruction}
   btnBuildPrompt.addEventListener('click', () => {
     const prompt = buildPrompt();
     state.lastGeneratedPrompt = prompt;
+    setMobileView('editor');
     navigator.clipboard.writeText(prompt).then(() => {
       showToast('プロンプトをクリップボードにコピーしました！');
       state.activeTab = 'prompt';
@@ -913,6 +1053,12 @@ ${antiAiInstruction}
       updateStats();
     }).catch(() => {
       showToast('プロンプトを生成しました');
+      state.activeTab = 'prompt';
+      tabPromptView.classList.add('active');
+      tabPreview.classList.remove('active');
+      outputEditor.value = prompt;
+      outputEditor.readOnly = true;
+      updateStats();
     });
   });
 
@@ -926,6 +1072,7 @@ ${antiAiInstruction}
 
     const prompt = buildPrompt();
     state.lastGeneratedPrompt = prompt;
+    setMobileView('editor');
 
     // Switch to Preview tab
     state.activeTab = 'preview';
@@ -1170,8 +1317,64 @@ ${antiAiInstruction}
     }
   }
 
+  // ==========================================
+  // 14. iPhone / Mobile Sync Modal & QR Code Generation
+  // ==========================================
+  function renderMobileQrCode() {
+    let host = window.location.hostname || '192.168.0.12';
+    let port = window.location.port || '8085';
+    if (host === 'localhost' || host === '127.0.0.1') {
+      host = '192.168.0.12'; // Default to Mac local Wi-Fi IP
+    }
+    const fullUrl = `${window.location.protocol}//${host}${port ? ':' + port : ''}/index.html`;
+    
+    if (mobileAccessUrl) {
+      mobileAccessUrl.value = fullUrl;
+    }
+
+    if (qrcodeContainer && typeof qrcode !== 'undefined') {
+      try {
+        const qr = qrcode(0, 'M');
+        qr.addData(fullUrl);
+        qr.make();
+        qrcodeContainer.innerHTML = qr.createImgTag(5, 6);
+      } catch (e) {
+        qrcodeContainer.innerHTML = `<p style="color: #000; font-size: 0.8rem;">QRコード生成エラー: ${e.message}</p>`;
+      }
+    }
+  }
+
+  if (btnMobileSync && modalMobileSync) {
+    btnMobileSync.addEventListener('click', () => {
+      renderMobileQrCode();
+      modalMobileSync.classList.remove('hidden');
+    });
+
+    if (btnCloseMobileModal) {
+      btnCloseMobileModal.addEventListener('click', () => {
+        modalMobileSync.classList.add('hidden');
+      });
+    }
+
+    if (btnCloseMobileFooter) {
+      btnCloseMobileFooter.addEventListener('click', () => {
+        modalMobileSync.classList.add('hidden');
+      });
+    }
+
+    if (btnCopyMobileUrl) {
+      btnCopyMobileUrl.addEventListener('click', () => {
+        if (mobileAccessUrl) {
+          navigator.clipboard.writeText(mobileAccessUrl.value).then(() => {
+            showToast('iPhone用アクセスURLをコピーしました！');
+          });
+        }
+      });
+    }
+  }
+
   // Close modals on backdrop click
-  [modalApiSettings, modalHistory, modalGuide].forEach(modal => {
+  [modalApiSettings, modalHistory, modalGuide, modalMobileSync].forEach(modal => {
     if (modal) {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
@@ -1180,6 +1383,15 @@ ${antiAiInstruction}
       });
     }
   });
+
+  // Service Worker Registration for Offline PWA Support
+  if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {
+        // Silently ignore if offline caching is not supported in environment
+      });
+    });
+  }
 
   // Initial setup
   renderPalette();
