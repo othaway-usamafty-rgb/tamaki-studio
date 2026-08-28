@@ -1478,10 +1478,12 @@ ${antiAiInstruction}
     }
   });
 
-  // Service Worker Registration for Offline PWA Support
+  // Service Worker Registration for Offline PWA Support & Auto Update
   if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {
+      navigator.serviceWorker.register('./sw.js').then((reg) => {
+        reg.update();
+      }).catch(() => {
         // Silently ignore if offline caching is not supported in environment
       });
     });
