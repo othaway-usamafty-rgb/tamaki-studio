@@ -1368,7 +1368,7 @@ ${antiAiInstruction}
   const btnSyncTypeWifi = document.getElementById('btn-sync-type-wifi');
   const btnSyncTypeRemote = document.getElementById('btn-sync-type-remote');
   const mobileSyncDesc = document.getElementById('mobile-sync-desc');
-  const githubPagesDefaultUrl = 'https://othaway-usamafty-rgb.github.io/osavich_note/tamaki-studio/';
+  const githubPagesDefaultUrl = 'https://othaway-usamafty-rgb.github.io/tamaki-studio/';
 
   function renderMobileQrCode(targetUrl) {
     let fullUrl = targetUrl;
