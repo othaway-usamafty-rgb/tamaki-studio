@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lastGeneratedPrompt: '',
     loadedDoc: null, // { name: '', content: '', chars: 0 }
     tuning: {
+      tone: 2,        // 1: 冷静・知性派 (クール), 2: 標準 (バランス), 3: 熱量全開 (自虐強め)
       meta: 3,        // 1: 控えめ, 2: 標準, 3: 全開 (筆者特有の自虐)
       turbulence: 3,  // 1: 一直線, 2: 標準, 3: 全開 (思考の揺れ・迷走・二転三転)
       detail: 3,      // 1: 標準, 2: 高解像度, 3: 超高解像度 (生々しさ)
@@ -187,10 +188,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const fieldsNovel = document.getElementById('fields-novel');
 
   // Sliders
+  const sliderTone = document.getElementById('slider-tone');
   const sliderMeta = document.getElementById('slider-meta');
   const sliderTurbulence = document.getElementById('slider-turbulence');
   const sliderDetail = document.getElementById('slider-detail');
   const sliderTempo = document.getElementById('slider-tempo');
+  const valTone = document.getElementById('val-tone');
   const valMeta = document.getElementById('val-meta');
   const valTurbulence = document.getElementById('val-turbulence');
   const valDetail = document.getElementById('val-detail');
@@ -544,10 +547,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // 6. Slider Updates & Tuning
   // ==========================================
+  const toneLabels = { 1: '冷静・知性派 (クール)', 2: '標準 (バランス)', 3: '熱量全開 (自虐強め)' };
   const metaLabels = { 1: '控えめ', 2: '標準', 3: '全開 (自虐・迷い多め)' };
-  const turbulenceLabels = { 1: '一直線 (論理的)', 2: '標準 (適度な寄り道)', 3: '全開 (オタクの思考実験・迷走)' };
+  const turbulenceLabels = { 1: '一直線 (論理的)', 2: '標準 (適度な寄り道)', 3: '全開 (思考の揺れ・迷走)' };
   const detailLabels = { 1: '標準', 2: '高解像度', 3: '超高解像度 (生々しい具体性)' };
   const tempoLabels = { 1: 'スマホ向け (改行・余白多め)', 2: '標準', 3: '重厚 (じっくり読ませる)' };
+
+  sliderTone.addEventListener('input', (e) => {
+    state.tuning.tone = parseInt(e.target.value, 10);
+    valTone.textContent = toneLabels[state.tuning.tone];
+  });
 
   sliderMeta.addEventListener('input', (e) => {
     state.tuning.meta = parseInt(e.target.value, 10);
@@ -574,12 +583,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnResetTuning.addEventListener('click', () => {
+    sliderTone.value = 2;
     sliderMeta.value = 3;
     sliderTurbulence.value = 3;
     sliderDetail.value = 3;
     sliderTempo.value = 1;
     toggleAntiAi.checked = true;
-    state.tuning = { meta: 3, turbulence: 3, detail: 3, tempo: 1, antiAi: true };
+    state.tuning = { tone: 2, meta: 3, turbulence: 3, detail: 3, tempo: 1, antiAi: true };
+    valTone.textContent = toneLabels[2];
     valMeta.textContent = metaLabels[3];
     valTurbulence.textContent = turbulenceLabels[3];
     valDetail.textContent = detailLabels[3];
@@ -594,18 +605,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const mode = state.currentMode;
     const tuning = state.tuning;
 
+    let toneInstruction = "";
+    if (tuning.tone === 1) {
+      toneInstruction = "【最重要文体トーン：冷静・知性派 (クール)】過度な自虐や感情的なセルフツッコミ、大げさな表現を抑え、理知的で冷静かつ落ち着いた語り口で執筆すること。鋭いメタ認知や具体的な描写力は保ちつつも、静かで知性ある大人の文脈に仕上げること。";
+    } else if (tuning.tone === 3) {
+      toneInstruction = "【最重要文体トーン：熱量全開 (自虐強め)】鋭い自虐、感情の揺れ、強烈なセルフツッコミを前面に出し、人間味溢れる熱いテンションで一気に読ませること。";
+    } else {
+      toneInstruction = "【文体トーン：標準 (バランス)】等身大の知性と適度な自虐・セルフツッコミを交え、親しみやすくユーモラスに執筆すること。";
+    }
+
     let metaInstruction = "";
     if (tuning.meta === 3) {
-      metaInstruction = "【最重要：メタ認知・自虐】鋭いメタ認知（自己客観視）と自虐・セルフツッコミを前面に出し、格好つけや迷いをユーモラスに自己開示すること。「……お気づきでしょうか」「完全に富野御大の掌の上」「安心感を買っているだけ」などの皮肉な自省を入れる。";
+      const metaExample = mode === 'subculture' ? "「……お気づきでしょうか」「完全に富野御大の掌の上」" : "「……お気づきでしょうか」「安心感を買っているだけ」「自分の勘違いだったわけです」";
+      metaInstruction = `【最重要：メタ認知・自虐】鋭いメタ認知（自己客観視）と自虐・セルフツッコミを出し、格好つけや迷いをユーモラスに自己開示すること。${metaExample}などの皮肉な自省を入れること。`;
     } else if (tuning.meta === 2) {
       metaInstruction = "適度に自分を客観視し、冷静な大人の視座を保つこと。";
     } else {
-      metaInstruction = "自己開示は控えめに、客観的な事象を軸に記述すること。";
+      metaInstruction = "自己開示やツッコミは控えめに、客観的な事象を軸に記述すること。";
     }
 
     let turbulenceInstruction = "";
     if (tuning.turbulence === 3) {
-      turbulenceInstruction = "【最重要：思考の迷走プロセス（オタクの思考実験）】一直線に綺麗すぎる起承転結で論理を固めてはならない。「調べる → 変な引っかかりに気づく → じゃあこうじゃね？と仮説を立てる → いや待てよと立ち止まり疑う → 妄想が加速する」というオタク特有の思考の揺れ・迷走・二転三転のプロセスを生々しく残すこと。";
+      const turbLabel = mode === 'subculture' ? "（オタクの思考実験）" : "（試行錯誤・自問自答）";
+      turbulenceInstruction = `【最重要：思考の迷走プロセス${turbLabel}】一直線に綺麗すぎる起承転結で論理を固めてはならない。「調べる → 変な引っかかりに気づく → じゃあこうじゃね？と仮説を立てる → いや待てよと立ち止まり疑う → 思考が二転三転する」という生々しいプロセスを残すこと。`;
     } else if (tuning.turbulence === 2) {
       turbulenceInstruction = "適度に思考の寄り道や自問自答を挟み、平坦な説明文にならないようにすること。";
     } else {
@@ -614,7 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let detailInstruction = "";
     if (tuning.detail === 3) {
-      detailInstruction = "【超高解像度】抽象表現は厳禁。具体的な固有名詞、日付・年月日（例: 1980年7月19日等）、温度、触覚、匂い、金額（円）、生々しい試行錯誤の経過、機体名・車種・道具名を高い解像度で描写すること。";
+      detailInstruction = "【超高解像度】抽象表現は厳禁。具体的な固有名詞、日付・年月日、温度、触覚、匂い、金額（円）、生々しい試行錯誤の経過、道具・型番名を高い解像度で描写すること。";
     } else {
       detailInstruction = "具体的なエピソードや状況を分かりやすく描写すること。";
     }
@@ -628,14 +650,26 @@ document.addEventListener('DOMContentLoaded', () => {
       tempoInstruction = "【リズム】標準的なエッセイ・記事の改行ペースで構成すること。";
     }
 
+    let modeSpecificRule = "";
+    if (mode === 'essay') {
+      modeSpecificRule = `
+## 【最重要規則：ガンダム・サブカルネタの完全排除】
+- ユーザーが【テーマ】や【実体験】等で明示的にガンダムや特定のサブカルチャー作品をテーマ・ネタに指定しない限り、ガンダムネタ、宇宙世紀用語（ザク、富野、トミノメモ等）、アニメ・漫画の例え話を文章中に一切含めないこと。
+- 日常の実体験、失敗談、買い物、人間観察、物事の本質考察のみに専念すること。
+`;
+    }
+
+    const antiAiExampleDelusion = mode === 'subculture' ? "「ここからは完全に私の妄想（老害の妄執タイム）ですが」" : "「ここからは完全に私の妄想（独断と偏見タイム）ですが」";
+    const antiAiExampleLogic = mode === 'subculture' ? "トミノメモや設定資料の該当記述・話数ディテール" : "具体的な数値・日付・現場のディテール";
+
     const antiAiInstruction = tuning.antiAi ? `
 ## 厳格な禁止事項（AI臭さ・論文調の完全排除ルール）
 - ❌ 抽象的な比喩三連発（例：「絶望的な打撃」「作品の純度を極限まで高め」「熱量を爆発させた火種」等）や、論文調の結び（「〜と考えられます」「〜と言えるでしょう」「〜が示唆されます」）は厳禁。
-- ⭕ 「〜なんじゃないかと思うんですよ」「〜じゃね？」「〜というわけです」といった飾らない口語・雑な断定・生々しいオタクの本音を貫くこと。
+- ⭕ 「〜なんじゃないかと思うんですよ」「〜じゃね？」「〜というわけです」といった飾らない口語・雑な断定・生々しい本音を貫くこと。
 - ❌ 「いかがでしたでしょうか？」「〜してみてはいかがでしょうか」「素晴らしい未来が待っています」「ぜひ試してみてください」「まとめると」などの紋切り型まとめは厳禁。
-- ❌ 辞書にない不自然なAI誤変換・造語（例：「大曲律」等）を出力しないこと。
-- 🎯 【妄想境界の明示】史実・前提の解説から大胆なIFや考察に突入する際は、「ここからは完全に私の妄想（老害の妄執タイム）ですが」「オタクの思考実験にお付き合いいただこう」と明確に境界線を宣言して読者を乗っからせること。
-- 🔍 【論理の核の具体化】一番大事な主張・仮説の根拠を「推察されます」「確認できませんでした」とお茶を濁さず、トミノメモや設定資料の該当記述・話数ディテールを具体的に挙げて論理を補強すること。
+- ❌ 辞書にない不自然なAI誤変換・造語を出力しないこと。
+- 🎯 【妄想境界の明示】史実・前提の解説から大胆なIFや考察に突入する際は、${antiAiExampleDelusion}と明確に境界線を宣言して読者を乗っからせること。
+- 🔍 【論理の核の具体化】一番大事な主張・仮説の根拠を「推察されます」「確認できませんでした」とお茶を濁さず、${antiAiExampleLogic}を具体的に挙げて論理を補強すること。
 ` : "";
 
     // Specific mode input & Few-shot samples
@@ -741,16 +775,26 @@ ${truncated}
 `;
     }
 
+    let personaHeader = "";
+    if (mode === 'subculture') {
+      personaHeader = "あなたは、鋭いメタ認知、高い解像度、宇宙世紀原理主義、生々しいリアリズム、思考の揺れ（迷走プロセス）、そして軽妙なオチを兼ね備えた人気Webライター／論客「たまきぱずず」です。";
+    } else if (mode === 'novel') {
+      personaHeader = "あなたは、鋭いメタ認知、高い解像度、五感描写、生々しいリアリズム、大人の心理機微を描く作家「たまきぱずず」です。";
+    } else {
+      personaHeader = "あなたは、鋭いメタ認知、高い解像度、生々しいリアリズム、大人のバランス感覚、そして軽妙なオチを兼ね備えた人気Webライター／エッセイスト「たまきぱずず」です。";
+    }
+
     return `# 命令書: 「たまきぱずず」スタイルによる文書執筆
 
-あなたは、鋭いメタ認知、高い解像度、宇宙世紀原理主義、生々しいリアリズム、思考の揺れ（迷走プロセス）、そして軽妙なオチを兼ね備えた人気Webライター／論客「たまきぱずず」です。
+${personaHeader}
 以下の前提・ルール・お手本を厳格に順守し、読者を惹きつける完成原稿を執筆してください。
 
 ${fewShotSample}
 ${refDocSection}
 ${modeSection}
-
+${modeSpecificRule}
 ## 文体・チューニング指示
+- ${toneInstruction}
 - ${metaInstruction}
 - ${turbulenceInstruction}
 - ${detailInstruction}
@@ -1318,15 +1362,29 @@ ${antiAiInstruction}
   }
 
   // ==========================================
-  // 14. iPhone / Mobile Sync Modal & QR Code Generation
+  // 14. iPhone / Mobile Sync Modal & QR Code Generation (Local & Remote)
   // ==========================================
-  function renderMobileQrCode() {
-    let host = window.location.hostname || '192.168.0.12';
-    let port = window.location.port || '8085';
-    if (host === 'localhost' || host === '127.0.0.1') {
-      host = '192.168.0.12'; // Default to Mac local Wi-Fi IP
+  let currentSyncType = 'wifi'; // 'wifi' | 'remote'
+  const btnSyncTypeWifi = document.getElementById('btn-sync-type-wifi');
+  const btnSyncTypeRemote = document.getElementById('btn-sync-type-remote');
+  const mobileSyncDesc = document.getElementById('mobile-sync-desc');
+  const githubPagesDefaultUrl = 'https://othaway-usamafty-rgb.github.io/osavich_note/tamaki-studio/';
+
+  function renderMobileQrCode(targetUrl) {
+    let fullUrl = targetUrl;
+
+    if (!fullUrl) {
+      if (currentSyncType === 'remote') {
+        fullUrl = localStorage.getItem('tamaki_remote_url') || githubPagesDefaultUrl;
+      } else {
+        let host = window.location.hostname || '192.168.0.12';
+        let port = window.location.port || '8085';
+        if (host === 'localhost' || host === '127.0.0.1') {
+          host = '192.168.0.12'; // Default to Mac local Wi-Fi IP
+        }
+        fullUrl = `${window.location.protocol}//${host}${port ? ':' + port : ''}/index.html`;
+      }
     }
-    const fullUrl = `${window.location.protocol}//${host}${port ? ':' + port : ''}/index.html`;
     
     if (mobileAccessUrl) {
       mobileAccessUrl.value = fullUrl;
@@ -1342,6 +1400,42 @@ ${antiAiInstruction}
         qrcodeContainer.innerHTML = `<p style="color: #000; font-size: 0.8rem;">QRコード生成エラー: ${e.message}</p>`;
       }
     }
+  }
+
+  if (btnSyncTypeWifi && btnSyncTypeRemote) {
+    btnSyncTypeWifi.addEventListener('click', () => {
+      currentSyncType = 'wifi';
+      btnSyncTypeWifi.classList.add('active');
+      btnSyncTypeWifi.style.fontWeight = '600';
+      btnSyncTypeRemote.classList.remove('active');
+      btnSyncTypeRemote.style.fontWeight = 'normal';
+      if (mobileSyncDesc) {
+        mobileSyncDesc.innerHTML = '同一Wi-Fiに接続したiPhoneの<strong>カメラアプリ</strong>で、以下のQRコードをかざしてください。Safariで即座に起動します。';
+      }
+      renderMobileQrCode();
+    });
+
+    btnSyncTypeRemote.addEventListener('click', () => {
+      currentSyncType = 'remote';
+      btnSyncTypeRemote.classList.add('active');
+      btnSyncTypeRemote.style.fontWeight = '600';
+      btnSyncTypeWifi.classList.remove('active');
+      btnSyncTypeWifi.style.fontWeight = 'normal';
+      if (mobileSyncDesc) {
+        mobileSyncDesc.innerHTML = '4G/5G回線や外出先からアクセス可能な<strong>GitHub Pages等の公開URL</strong>（HTTPS）です。カメラで読み取ってSafariで起動します。';
+      }
+      renderMobileQrCode();
+    });
+  }
+
+  if (mobileAccessUrl) {
+    mobileAccessUrl.addEventListener('input', (e) => {
+      const url = e.target.value.trim();
+      if (currentSyncType === 'remote' && url) {
+        localStorage.setItem('tamaki_remote_url', url);
+      }
+      renderMobileQrCode(url);
+    });
   }
 
   if (btnMobileSync && modalMobileSync) {
@@ -1366,7 +1460,7 @@ ${antiAiInstruction}
       btnCopyMobileUrl.addEventListener('click', () => {
         if (mobileAccessUrl) {
           navigator.clipboard.writeText(mobileAccessUrl.value).then(() => {
-            showToast('iPhone用アクセスURLをコピーしました！');
+            showToast('アクセスURLをコピーしました！');
           });
         }
       });

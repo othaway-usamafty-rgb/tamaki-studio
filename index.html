@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
-  <title>Tamaki Studio v2.1 Pro | たまきぱずず専属 執筆工房</title>
+  <title>Tamaki Studio v2.2 Pro | たまきぱずず専属 執筆工房</title>
   <meta name="description" content="たまきぱずず氏特有の文体・思考様式（鋭いメタ認知・高い解像度・宇宙世紀原理主義・思考の迷走・生々しいリアリズム・軽妙なオチ）を完全再現する専用執筆支援スタジオ">
   
   <!-- iPhone / PWA Mobile App Support -->
@@ -32,7 +32,7 @@
           </svg>
         </div>
         <div class="brand-text">
-          <h1>Tamaki Studio <span class="badge badge-pulse">v2.1 Pro</span></h1>
+          <h1>Tamaki Studio <span class="badge badge-pulse">v2.2 Pro</span></h1>
           <p class="subtitle">たまきぱずず専属 文書執筆・原稿解析・プロンプト生成工房</p>
         </div>
       </div>
@@ -234,6 +234,19 @@
                 たまきぱずず度 チューニング
               </div>
               <button type="button" id="btn-reset-tuning" class="btn-text-sm">標準に戻す</button>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-label">
+                <span>文体トーン (冷静度)</span>
+                <span class="slider-value" id="val-tone">標準 (バランス)</span>
+              </div>
+              <input type="range" id="slider-tone" min="1" max="3" value="2" step="1">
+              <div class="slider-ticks">
+                <span>冷静・知性派 (クール)</span>
+                <span>標準 (バランス)</span>
+                <span>熱量全開 (自虐強め)</span>
+              </div>
             </div>
 
             <div class="slider-group">
@@ -549,11 +562,17 @@
     <div id="modal-mobile-sync" class="modal-backdrop hidden">
       <div class="modal-card">
         <div class="modal-header">
-          <h3>📱 iPhoneで Tamaki Studio を開く</h3>
+          <h3>📱 iPhone / スマホ連携（内外アクセス対応）</h3>
           <button class="modal-close" id="btn-close-mobile-modal">&times;</button>
         </div>
         <div class="modal-body" style="text-align: center;">
-          <p class="modal-desc" style="margin-bottom: 1rem;">
+          <!-- Connection Mode Switcher -->
+          <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1rem;">
+            <button id="btn-sync-type-wifi" class="btn-secondary btn-sm active" style="flex: 1; font-weight: 600;">🏠 自宅Wi-Fi用</button>
+            <button id="btn-sync-type-remote" class="btn-secondary btn-sm" style="flex: 1;">🌐 外出先用 (GitHub Pages等)</button>
+          </div>
+
+          <p class="modal-desc" id="mobile-sync-desc" style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
             同一Wi-Fiに接続したiPhoneの<strong>カメラアプリ</strong>で、以下のQRコードをかざしてください。Safariで即座に起動します。
           </p>
           
@@ -562,20 +581,20 @@
           </div>
 
           <div class="form-group" style="text-align: left; margin-top: 0.5rem;">
-            <label style="font-size: 0.75rem;">アクセスURL（手動入力・コピー用）</label>
+            <label style="font-size: 0.75rem;" id="mobile-url-label">アクセスURL（手動入力・コピー用）</label>
             <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="mobile-access-url" readonly style="font-family: monospace; font-size: 0.85rem;" value="http://192.168.0.12:8085">
+              <input type="text" id="mobile-access-url" style="font-family: monospace; font-size: 0.85rem;" value="http://192.168.0.12:8085">
               <button id="btn-copy-mobile-url" class="btn-secondary btn-sm" style="white-space: nowrap;">URLコピー</button>
             </div>
           </div>
 
           <div class="mobile-guide-steps" style="margin-top: 1.25rem; text-align: left; background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
-            <div style="font-weight: 600; color: var(--accent-amber); font-size: 0.85rem; margin-bottom: 0.5rem;">📲 iPhoneホーム画面に追加してアプリ化する手順</div>
-            <ol style="padding-left: 1.25rem; font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.35rem;">
-              <li>iPhoneの <strong>Safari</strong> でQRコードのURLを開く</li>
+            <div style="font-weight: 600; color: var(--accent-amber); font-size: 0.85rem; margin-bottom: 0.5rem;" id="mobile-guide-title">📲 iPhoneホーム画面に追加してアプリ化する手順</div>
+            <ol style="padding-left: 1.25rem; font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.35rem;" id="mobile-guide-list">
+              <li>iPhoneの <strong>Safari</strong> でアクセスURL（またはQRコード）を開く</li>
               <li>画面下の <strong>「共有」ボタン</strong>（四角から上矢印）をタップ</li>
               <li><strong>「ホーム画面に追加」</strong> をタップ</li>
-              <li>ホーム画面に専用アイコンが並び、全画面のネイティブアプリとして起動できます！</li>
+              <li>ホーム画面に専用アイコンが並び、カフェや移動中でも全画面ネイティブアプリとして起動できます！</li>
             </ol>
           </div>
         </div>
