@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
-  <title>Tamaki Studio v3.0 Ultra | たまきぱずず専属 執筆工房</title>
+  <title>Tamaki Studio v2.2.1 Pro | たまきぱずず専属 執筆工房</title>
   <meta name="description" content="たまきぱずず氏特有の文体・思考様式（鋭いメタ認知・高い解像度・宇宙世紀原理主義・思考の迷走・生々しいリアリズム・軽妙なオチ）を完全再現する専用執筆支援スタジオ">
   
   <!-- iPhone / PWA Mobile App Support -->
@@ -32,15 +32,11 @@
           </svg>
         </div>
         <div class="brand-text">
-          <h1>Tamaki Studio <span class="badge badge-pulse">v3.0 Ultra</span></h1>
+          <h1>Tamaki Studio <span class="badge badge-pulse">v2.2.1 Pro</span></h1>
           <p class="subtitle">たまきぱずず専属 文書執筆・原稿解析・プロンプト生成工房</p>
         </div>
       </div>
       <div class="header-actions">
-        <a href="./v2.2.1/index.html" target="_blank" id="btn-v221" class="btn-secondary btn-sm" title="旧バージョン v2.2.1 Pro を開く">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-          <span>v2.2.1旧版</span>
-        </a>
         <button id="btn-mobile-sync" class="btn-secondary btn-sm btn-highlight-mobile" title="iPhoneで開く (QRコード・連携)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
           <span>📱 iPhone連携</span>
@@ -95,11 +91,6 @@
         <div class="mode-tabs-container">
           <div class="tabs-label">執筆ジャンルを選択</div>
           <div class="mode-tabs">
-            <button class="mode-tab" data-mode="detox" id="tab-detox">
-              <span class="tab-icon">🚽</span>
-              <span class="tab-title">便所の落書き</span>
-              <span class="tab-desc">言葉の水路の掃除・無機質デトックス</span>
-            </button>
             <button class="mode-tab active" data-mode="essay" id="tab-essay">
               <span class="tab-icon">☕</span>
               <span class="tab-title">エッセイ・コラム</span>
@@ -139,23 +130,6 @@
                   <option value="novel_drive">車内の密室と理性が崩れるグラデーション</option>
                 </optgroup>
               </select>
-            </div>
-          </div>
-
-          <!-- Detox Fields (便所の落書き・言葉の水路の掃除モード) -->
-          <div class="mode-fields hidden" id="fields-detox">
-            <div class="detox-card">
-              <div class="detox-card-header">
-                <span class="detox-badge">🚽 無機質デトックスモード</span>
-                <span class="detox-counter" id="detox-char-count">0 文字</span>
-              </div>
-              <p class="detox-hint">
-                パラメータやAI診断を意識せず、ただ頭に浮かんだ恥ずかしい文章や感情をそのまま吐き出してください。自意識の目詰まりを掃除する無機質な空間です。
-              </p>
-              <textarea id="detox-input" rows="7" class="detox-textarea" placeholder="ここに生の感情や思考をそのまま書き殴ってください（装飾・AIチェック・パラメータ設定は一切作動しません）..."></textarea>
-              <button type="button" id="btn-send-to-studio" class="btn-primary btn-block" style="margin-top: 12px;">
-                🚀 AIスタジオへ送る（本編執筆フォームへ展開）
-              </button>
             </div>
           </div>
 
@@ -443,16 +417,6 @@
           </div>
         </div>
 
-        <!-- Compliance & Privacy Alert Banner (v3.0 New Feature) -->
-        <div id="compliance-alert" class="alert-banner danger-banner hidden">
-          <div class="alert-icon">🛡️</div>
-          <div class="alert-content">
-            <div class="alert-title">コンプラ・身バレ アラート（特定固有名詞検知）</div>
-            <div class="alert-desc" id="compliance-details"></div>
-          </div>
-          <button id="btn-anonymize-names" class="btn-text-sm">ワンクリックフィクション化</button>
-        </div>
-
         <!-- AI Smell & Academic Tone Warning Banner -->
         <div id="ai-smell-alert" class="alert-banner hidden">
           <div class="alert-icon">⚠️</div>
@@ -496,10 +460,6 @@
             <button id="btn-copy-output" class="btn-primary btn-sm">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               <span>文章をコピー (note用)</span>
-            </button>
-            <button id="btn-copy-chatgpt" class="btn-secondary btn-sm btn-chatgpt-copy" title="ChatGPTでの推敲用に指示プロンプト付きでクリップボードにコピー">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              <span>🟢 ChatGPT推敲用プロンプト付きコピー</span>
             </button>
             <button id="btn-download-md" class="btn-secondary btn-sm">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -577,7 +537,7 @@
     <div id="modal-guide" class="modal-backdrop hidden">
       <div class="modal-card modal-lg">
         <div class="modal-header">
-          <h3>📖 Tamaki Studio v3.0 Ultra 完全取扱説明書</h3>
+          <h3>📖 Tamaki Studio v2.2.1 Pro 完全取扱説明書</h3>
           <button class="modal-close" id="btn-close-guide-modal">&times;</button>
         </div>
         <div class="modal-body">
@@ -587,20 +547,19 @@
               Safariの「共有」ボタン →「<strong>ホーム画面に追加</strong>」を行うと、iPhoneのホーム画面から全画面のネイティブアプリ感覚でいつでも一発起動できます。
             </p>
 
-            <h4 style="color: var(--text-accent); margin-top: 1rem; margin-bottom: 0.5rem;">✨ v3.0 Ultra 新搭載・強化機能</h4>
+            <h4 style="color: var(--text-accent); margin-top: 1rem; margin-bottom: 0.5rem;">✨ 主な機能と使い方のコツ</h4>
             <ul style="padding-left: 1.25rem; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; color: var(--text-secondary);">
-              <li><strong style="color: var(--text-primary);">🟢 ChatGPT推敲バトンタッチ</strong>: 生成・調整した原稿を特製「皮肉屋でサブカル愛ある優秀な編集者」プロンプトで包んでクリップボードにコピー。Gemini（作成）→ ChatGPT（無料枠での伴走・推敲）の最強連携！</li>
-              <li><strong style="color: var(--text-primary);">🚽 便所の落書き（言葉の水路の掃除）</strong>: パラメータやAI評価を一切排除した無機質テキスト空間。自意識の目詰まりを排して感情を吐き出し、「AIスタジオへ送る」で執筆フォームへ一気展開。</li>
-              <li><strong style="color: var(--text-primary);">🛡️ コンプラ・身バレ アラート</strong>: 実在の車種名（マークIIプレミオ等）やホテル名などの特定固有名詞を自動検知。「⚠️生々しすぎます」と警告＆ワンクリックフィクション化置換！</li>
-              <li><strong style="color: var(--text-primary);">💡 一般ビジネス論への昇華トリガー</strong>: 思考トリガーに「このマニアックな事象を、現代のビジネスや組織の理不尽さに例えると？」を追加。マニア知識を普遍的なビジネス論へと引き上げる知的ギャップ構成を自動化。</li>
+              <li><strong style="color: var(--text-primary);">📄 過去原稿ドロップ</strong>: 手持ちの .md / .txt ファイルを放り込むだけで、AIがその文体をお手本として直接模倣。フォームへも一括展開可能。</li>
+              <li><strong style="color: var(--text-primary);">🧩 語録・思考パレット</strong>: 「オールドタイプ原理主義」「安心感を買っているだけ」などの特有フレーズをワンクリックで入力欄へ挿入。</li>
+              <li><strong style="color: var(--text-primary);">🎯 例文プリセット</strong>: 「ガンダム52話打ち切りIF」「テキサスコロニー建造計画」「酷暑ゴルフ散財」などをワンタッチ読込。</li>
+              <li><strong style="color: var(--text-primary);">📊 シンクロ率チェッカー</strong>: 自虐度、五感解像度、改行テンポ、オチのキレをリアルタイム診断。AI特有の綺麗事まとめを自動警告。</li>
             </ul>
 
-            <h4 style="color: var(--text-accent); margin-top: 1rem; margin-bottom: 0.5rem;">🚀 noteへの投稿・シームレス執筆フロー</h4>
+            <h4 style="color: var(--text-accent); margin-top: 1rem; margin-bottom: 0.5rem;">🚀 noteへの投稿フロー</h4>
             <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem; color: var(--text-secondary);">
-              <li>「便所の落書き」モードで頭の中の感情やテーマを吐き出し、「AIスタジオへ送る」をタップ</li>
-              <li>「AIで筆者風に直接執筆」を押してGeminiでベース原稿を生成</li>
-              <li>「🟢 ChatGPT推敲用コピー」を押してChatGPTに貼り付け、推敲・ブラッシュアップを実施</li>
-              <li>「文章をコピー (note用)」で最終原稿を取得し、note新規投稿へ貼り付け！</li>
+              <li>各項目を入力（またはプリセット／原稿読込）</li>
+              <li>「AIで筆者風に直接執筆」または「プロンプトを合成・コピー」</li>
+              <li>完成文を確認し、「文章をコピー (note用)」を押してnote新規投稿に貼り付け！</li>
             </ol>
           </div>
         </div>
@@ -674,6 +633,6 @@
   <div id="toast-message" class="toast hidden">コピーしました！</div>
 
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=3.0.0"></script>
+  <script src="app.js?v=2.1.0"></script>
 </body>
 </html>

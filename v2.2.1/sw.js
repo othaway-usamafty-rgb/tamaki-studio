@@ -1,5 +1,5 @@
 // Tamaki Studio Service Worker (Offline PWA Support)
-const CACHE_NAME = 'tamaki-studio-v3.0-ultra';
+const CACHE_NAME = 'tamaki-studio-v2.2.1-final';
 const ASSETS_TO_CACHE = [
   './index.html',
   './styles.css',

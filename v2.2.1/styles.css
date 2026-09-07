@@ -502,8 +502,8 @@ body {
 
 .mode-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.35rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
   background: var(--bg-secondary);
   padding: 0.35rem;
   border-radius: var(--radius-md);
@@ -1482,98 +1482,3 @@ button {
     font-size: 0.75rem;
   }
 }
-
-/* ==========================================
- * v3.0 Ultra New Styles
- * ========================================== */
-
-/* 1. Detox Mode (便所の落書き・無機質デトックス) */
-.detox-card {
-  background: rgba(13, 17, 23, 0.85);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  border-radius: var(--radius-md);
-  padding: 1.25rem;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-  transition: all 0.3s ease;
-}
-
-.detox-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.65rem;
-}
-
-.detox-badge {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: #f87171;
-  letter-spacing: 0.03em;
-}
-
-.detox-counter {
-  font-size: 0.8125rem;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.05);
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.detox-hint {
-  font-size: 0.775rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin-bottom: 0.875rem;
-}
-
-.detox-textarea {
-  width: 100%;
-  background: #090d13;
-  color: #e6edf3;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-sm);
-  padding: 0.875rem;
-  font-size: 0.9rem;
-  line-height: 1.7;
-  resize: vertical;
-  font-family: inherit;
-  transition: border-color 0.2s;
-}
-
-.detox-textarea:focus {
-  outline: none;
-  border-color: rgba(239, 68, 68, 0.5);
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
-}
-
-/* 2. Compliance Alert Banner (身バレ・特定固有名詞警告) */
-.danger-banner {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
-}
-
-.danger-banner .alert-title {
-  color: #ef4444;
-  font-weight: 700;
-}
-
-.danger-banner .alert-desc {
-  color: #fca5a5;
-}
-
-/* 3. ChatGPT Copy Button */
-.btn-chatgpt-copy {
-  background: rgba(16, 163, 127, 0.12) !important;
-  border: 1px solid rgba(16, 163, 127, 0.35) !important;
-  color: #10a37f !important;
-  transition: all 0.2s ease !important;
-}
-
-.btn-chatgpt-copy:hover {
-  background: rgba(16, 163, 127, 0.25) !important;
-  border-color: rgba(16, 163, 127, 0.6) !important;
-  box-shadow: 0 0 12px rgba(16, 163, 127, 0.2) !important;
-}
-

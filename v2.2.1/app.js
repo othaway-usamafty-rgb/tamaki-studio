@@ -1,6 +1,6 @@
 /**
- * Tamaki Studio v3.0 Ultra - Application Logic
- * 鋭いメタ認知、思考の迷走プロセス、高解像度描写、オチのキレ、ChatGPT推敲連携、無機質デトックス、コンプラアラート、一般ビジネス論昇華を完全搭載
+ * Tamaki Studio v2.2.1 Pro - Application Logic
+ * 鋭いメタ認知、思考の迷走プロセス、高解像度描写、オチのキレを再現
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const state = {
-    currentMode: 'essay', // 'detox' | 'essay' | 'subculture' | 'novel'
+    currentMode: 'essay', // 'essay' | 'subculture' | 'novel'
     activeTab: 'preview', // 'preview' | 'prompt'
     apiKey: localStorage.getItem('tamaki_gemini_api_key') || '',
     apiModel: initialModel,
@@ -45,8 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
       "ま、楽しければいいんじゃね？",
       "いや、待てよ。",
       "ここからは完全に私の妄想ですが",
-      "オタクの思考実験の沼",
-      "💡 このマニアックな事象を、現代のビジネスや組織の理不尽さに例えると？"
+      "オタクの思考実験の沼"
     ],
     essay: [
       "安心感を買っているだけに過ぎない",
@@ -66,9 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
       "現場の一兵卒視点のスピンオフ",
       "富野御大の掌の上で転がされている",
       "静かに夜のコーヒーを飲み干すことにします",
-      "若きニュータイプに冷笑される前に",
-      "💡 このマニアックな事象を、現代のビジネスや組織の理不尽さに例えると？",
-      "予算不足の現場における、つじつま合わせの神技"
+      "若きニュータイプに冷笑される前に"
     ],
     colony_sf: [
       "メガ・イマジニアリング（Giga-scale Imagineering）",
@@ -185,11 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const paletteChipsContainer = document.getElementById('palette-chips');
 
   // Fields Containers
-  const fieldsDetox = document.getElementById('fields-detox');
-  const detoxInput = document.getElementById('detox-input');
-  const detoxCharCount = document.getElementById('detox-char-count');
-  const btnSendToStudio = document.getElementById('btn-send-to-studio');
-
   const fieldsEssay = document.getElementById('fields-essay');
   const fieldsSubculture = document.getElementById('fields-subculture');
   const fieldsNovel = document.getElementById('fields-novel');
@@ -222,11 +214,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const charCount = document.getElementById('char-count');
   const readTime = document.getElementById('read-time');
   const btnCopyOutput = document.getElementById('btn-copy-output');
-  const btnCopyChatgpt = document.getElementById('btn-copy-chatgpt');
   const btnDownloadMd = document.getElementById('btn-download-md');
   const toastMessage = document.getElementById('toast-message');
 
-  // Synchro-Meter & AI Smell / Fact Check / Compliance
+  // Synchro-Meter & AI Smell / Fact Check
   const synchroScoreVal = document.getElementById('synchro-score-val');
   const synchroBadge = document.getElementById('synchro-badge');
   const synchroBarFill = document.getElementById('synchro-bar-fill');
@@ -239,10 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const metricEndingVal = document.getElementById('metric-ending-val');
   const metricEndingFill = document.getElementById('metric-ending-fill');
   const synchroAdvice = document.getElementById('synchro-advice');
-
-  const complianceAlert = document.getElementById('compliance-alert');
-  const complianceDetails = document.getElementById('compliance-details');
-  const btnAnonymizeNames = document.getElementById('btn-anonymize-names');
 
   const factCheckAlert = document.getElementById('fact-check-alert');
   const factCheckDetails = document.getElementById('fact-check-details');
@@ -385,14 +372,11 @@ document.addEventListener('DOMContentLoaded', () => {
       tab.classList.toggle('active', tab.dataset.mode === mode);
     });
 
-    if (fieldsDetox) fieldsDetox.classList.toggle('hidden', mode !== 'detox');
     fieldsEssay.classList.toggle('hidden', mode !== 'essay');
     fieldsSubculture.classList.toggle('hidden', mode !== 'subculture');
     fieldsNovel.classList.toggle('hidden', mode !== 'novel');
 
-    if (mode === 'detox') {
-      formTitle.textContent = '🚽 言葉の水路の掃除（無機質デトックス）';
-    } else if (mode === 'essay') {
+    if (mode === 'essay') {
       formTitle.textContent = '☕ エッセイ執筆設定';
     } else if (mode === 'subculture') {
       formTitle.textContent = '🤖 ガンダム・サブカル論考執筆設定';
@@ -401,42 +385,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     renderPalette();
-  }
-
-  // Detox Input Events (便所の落書き・文字数カウント)
-  if (detoxInput && detoxCharCount) {
-    detoxInput.addEventListener('input', () => {
-      const len = detoxInput.value.length;
-      detoxCharCount.textContent = `${len} 文字`;
-    });
-  }
-
-  // Send Detox Content to AI Studio Form
-  if (btnSendToStudio) {
-    btnSendToStudio.addEventListener('click', () => {
-      const text = detoxInput ? detoxInput.value.trim() : '';
-      if (!text) {
-        showToast('吐き出した文章が空です。感情やメモを入力してください。');
-        return;
-      }
-
-      // Transfer text to essay experience field
-      const expField = document.getElementById('essay-experience');
-      if (expField) {
-        expField.value = expField.value ? `${expField.value}\n\n【デトックスメモ】\n${text}` : text;
-      }
-      
-      // Auto set theme if empty
-      const themeField = document.getElementById('essay-theme');
-      if (themeField && !themeField.value) {
-        const line1 = text.split('\n')[0].replace(/^[・\s\-]+/, '');
-        themeField.value = line1.substring(0, 30);
-      }
-
-      // Switch to Essay mode
-      setMode('essay');
-      showToast('🚀 無機質デトックス文をAIスタジオ執筆フォームへ展開しました！');
-    });
   }
 
   modeTabs.forEach(tab => {
@@ -874,12 +822,6 @@ ${fewShotSample}
 ${refDocSection}
 ${modeSection}
 ${modeSpecificRule}
-## コンプライアンス・身バレ防止ルール（必須・厳守）
-- 原稿内に「マークIIプレミオ」「HOTEL 伊丹」といった実在の特定車種・実在ホテル名・個人の特定に繋がる生々しすぎる固有名詞が含まれている場合、実生活の崩壊リスクや身バレを防ぐため、作品の臨場感を損なわない範囲で自動的に抽象化・フィクション表現（例: 『90年代の国産セダン』『郊外の古びたビジネスホテル』等）へ置換・フィクション化して出力してください。
-
-## 一般ビジネス論への昇華（知的ギャップ構成）
-- サブカルやマニアックな事象・設定の分析を語る際は、単なるマニア知識で終わらせず、「この事象を現代のビジネスや組織の理不尽さ（例: 予算不足の現場におけるつじつま合わせの神技、大人の事情、インフラのツギハギ運用等）」に例える視点を盛り込み、読者を唸らせる普遍的なビジネス・クリエイティブ論へと昇華させてください。
-
 ## 文体・チューニング指示
 - ${toneInstruction}
 - ${metaInstruction}
@@ -996,29 +938,6 @@ ${antiAiInstruction}
       factCheckDetails.innerHTML = factWarnings.map(w => `・${w}`).join('<br>');
     } else {
       factCheckAlert.classList.add('hidden');
-    }
-
-    // 5. Compliance & Privacy Alert (NEW in v3.0)
-    const sensitiveWordsMap = [
-      { pattern: /マークIIプレミオ|マークⅡプレミオ/g, name: 'マークIIプレミオ', replacement: '90年代の国産セダン' },
-      { pattern: /HOTEL 伊丹|ホテル伊丹|HOTEL伊丹/gi, name: 'HOTEL 伊丹', replacement: '郊外のビジネスホテル' },
-      { pattern: /ハイエース/g, name: 'ハイエース', replacement: 'ワンボックス車' },
-      { pattern: /セルシオ|シーマ/g, name: '高級セダン名', replacement: '旧型高級車' },
-      { pattern: /プリンスホテル|東急ホテル/g, name: '実在ホテルチェーン名', replacement: '都内の老舗ホテル' }
-    ];
-
-    let detectedCompliance = [];
-    sensitiveWordsMap.forEach(item => {
-      if (text.match(item.pattern)) {
-        detectedCompliance.push(item.name);
-      }
-    });
-
-    if (detectedCompliance.length > 0 && complianceAlert && complianceDetails) {
-      complianceAlert.classList.remove('hidden');
-      complianceDetails.innerHTML = `⚠️ 生々しすぎます。特定固有名詞（<strong>${detectedCompliance.join(', ')}</strong>）が検出されました。身バレ・実生活崩壊リスク防止のため、フィクション表現（例: 国産旧型セダン、郊外のホテル等）への変換を推奨します。`;
-    } else if (complianceAlert) {
-      complianceAlert.classList.add('hidden');
     }
 
     // AI Smell & Academic Tone Penalty (Enhanced)
@@ -1148,21 +1067,18 @@ ${antiAiInstruction}
     updateStats();
   }
 
-  if (btnFixSmell) {
-    btnFixSmell.addEventListener('click', () => {
-      applyQuickRewrite('clean-ai');
-    });
-  }
+  btnFixSmell.addEventListener('click', () => {
+    applyQuickRewrite('clean-ai');
+  });
 
   // Debounced Editor updates
   let analyzeTimer = null;
   function updateStats() {
-    if (!outputEditor) return;
     const text = outputEditor.value;
     const len = text.length;
-    if (charCount) charCount.textContent = `${len.toLocaleString()} 文字`;
+    charCount.textContent = `${len.toLocaleString()} 文字`;
     const minutes = Math.ceil(len / 500);
-    if (readTime) readTime.textContent = `読了 約${minutes}分`;
+    readTime.textContent = `読了 約${minutes}分`;
 
     clearTimeout(analyzeTimer);
     analyzeTimer = setTimeout(() => {
@@ -1170,198 +1086,123 @@ ${antiAiInstruction}
     }, 250);
   }
 
-  if (outputEditor) {
-    outputEditor.addEventListener('input', updateStats);
-  }
+  outputEditor.addEventListener('input', updateStats);
 
   // Tab Switch (Preview / Prompt)
-  if (tabPreview) {
-    tabPreview.addEventListener('click', () => {
-      state.activeTab = 'preview';
-      tabPreview.classList.add('active');
-      if (tabPromptView) tabPromptView.classList.remove('active');
-      if (outputEditor) {
-        outputEditor.readOnly = false;
-        outputEditor.classList.remove('editor-prompt-mode');
-      }
-      updateStats();
-    });
-  }
+  tabPreview.addEventListener('click', () => {
+    state.activeTab = 'preview';
+    tabPreview.classList.add('active');
+    tabPromptView.classList.remove('active');
+    outputEditor.readOnly = false;
+    outputEditor.classList.remove('editor-prompt-mode');
+    updateStats();
+  });
 
-  if (tabPromptView) {
-    tabPromptView.addEventListener('click', () => {
-      state.activeTab = 'prompt';
-      tabPromptView.classList.add('active');
-      if (tabPreview) tabPreview.classList.remove('active');
-      state.lastGeneratedPrompt = buildPrompt();
-      if (outputEditor) {
-        outputEditor.value = state.lastGeneratedPrompt;
-        outputEditor.readOnly = true;
-        outputEditor.classList.add('editor-prompt-mode');
-      }
-      updateStats();
-    });
-  }
+  tabPromptView.addEventListener('click', () => {
+    state.activeTab = 'prompt';
+    tabPromptView.classList.add('active');
+    tabPreview.classList.remove('active');
+    state.lastGeneratedPrompt = buildPrompt();
+    outputEditor.value = state.lastGeneratedPrompt;
+    outputEditor.readOnly = true;
+    outputEditor.classList.add('editor-prompt-mode');
+    updateStats();
+  });
 
   // ==========================================
   // 9. Prompt Generation & Direct Gemini API
   // ==========================================
-  if (btnBuildPrompt) {
-    btnBuildPrompt.addEventListener('click', () => {
-      const prompt = buildPrompt();
-      state.lastGeneratedPrompt = prompt;
-      setMobileView('editor');
-      navigator.clipboard.writeText(prompt).then(() => {
-        showToast('プロンプトをクリップボードにコピーしました！');
-        state.activeTab = 'prompt';
-        if (tabPromptView) tabPromptView.classList.add('active');
-        if (tabPreview) tabPreview.classList.remove('active');
-        if (outputEditor) {
-          outputEditor.value = prompt;
-          outputEditor.readOnly = true;
-        }
-        updateStats();
-      }).catch(() => {
-        showToast('プロンプトを生成しました');
-        state.activeTab = 'prompt';
-        if (tabPromptView) tabPromptView.classList.add('active');
-        if (tabPreview) tabPreview.classList.remove('active');
-        if (outputEditor) {
-          outputEditor.value = prompt;
-          outputEditor.readOnly = true;
-        }
-        updateStats();
+  btnBuildPrompt.addEventListener('click', () => {
+    const prompt = buildPrompt();
+    state.lastGeneratedPrompt = prompt;
+    setMobileView('editor');
+    navigator.clipboard.writeText(prompt).then(() => {
+      showToast('プロンプトをクリップボードにコピーしました！');
+      state.activeTab = 'prompt';
+      tabPromptView.classList.add('active');
+      tabPreview.classList.remove('active');
+      outputEditor.value = prompt;
+      outputEditor.readOnly = true;
+      updateStats();
+    }).catch(() => {
+      showToast('プロンプトを生成しました');
+      state.activeTab = 'prompt';
+      tabPromptView.classList.add('active');
+      tabPreview.classList.remove('active');
+      outputEditor.value = prompt;
+      outputEditor.readOnly = true;
+      updateStats();
+    });
+  });
+
+  btnAiGenerate.addEventListener('click', async () => {
+    if (!state.apiKey) {
+      modalApiSettings.classList.remove('hidden');
+      apiKeyInput.focus();
+      showToast('まずGemini APIキーを設定してください（無料）');
+      return;
+    }
+
+    const prompt = buildPrompt();
+    state.lastGeneratedPrompt = prompt;
+    setMobileView('editor');
+
+    // Switch to Preview tab
+    state.activeTab = 'preview';
+    tabPreview.classList.add('active');
+    tabPromptView.classList.remove('active');
+    outputEditor.readOnly = false;
+
+    loadingOverlay.classList.remove('hidden');
+    btnAiGenerate.disabled = true;
+
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${state.apiModel}:generateContent?key=${state.apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.85,
+            topP: 0.95,
+            maxOutputTokens: 3072
+          }
+        })
       });
-    });
-  }
 
-  if (btnAiGenerate) {
-    btnAiGenerate.addEventListener('click', async () => {
-      if (!state.apiKey) {
-        if (modalApiSettings) modalApiSettings.classList.remove('hidden');
-        if (apiKeyInput) apiKeyInput.focus();
-        showToast('まずGemini APIキーを設定してください（無料）');
-        return;
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `APIエラー (HTTP ${response.status})`);
       }
 
-      const prompt = buildPrompt();
-      state.lastGeneratedPrompt = prompt;
-      setMobileView('editor');
+      const data = await response.json();
+      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '生成された文章が空でした。';
 
-      // Switch to Preview tab
-      state.activeTab = 'preview';
-      if (tabPreview) tabPreview.classList.add('active');
-      if (tabPromptView) tabPromptView.classList.remove('active');
-      if (outputEditor) outputEditor.readOnly = false;
-
-      if (loadingOverlay) loadingOverlay.classList.remove('hidden');
-      btnAiGenerate.disabled = true;
-
-      try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${state.apiModel}:generateContent?key=${state.apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.85,
-              topP: 0.95,
-              maxOutputTokens: 3072
-            }
-          })
-        });
-
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error?.message || `APIエラー (HTTP ${response.status})`);
-        }
-
-        const data = await response.json();
-        const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '生成された文章が空でした。';
-
-        if (outputEditor) outputEditor.value = generatedText;
-        updateStats();
-        saveHistory(generatedText);
-        showToast('執筆が完了しました！');
-      } catch (err) {
-        alert(`執筆中にエラーが発生しました:\n${err.message}`);
-      } finally {
-        if (loadingOverlay) loadingOverlay.classList.add('hidden');
-        btnAiGenerate.disabled = false;
-      }
-    });
-  }
+      outputEditor.value = generatedText;
+      updateStats();
+      saveHistory(generatedText);
+      showToast('執筆が完了しました！');
+    } catch (err) {
+      alert(`執筆中にエラーが発生しました:\n${err.message}`);
+    } finally {
+      loadingOverlay.classList.add('hidden');
+      btnAiGenerate.disabled = false;
+    }
+  });
 
   // ==========================================
   // 10. Copy & Export Actions
   // ==========================================
-  if (btnCopyOutput) {
-    btnCopyOutput.addEventListener('click', () => {
-      const text = outputEditor ? outputEditor.value : '';
-      if (!text.trim()) {
-        showToast('コピーする文章がありません');
-        return;
-      }
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('note用本文をコピーしました！');
-      });
+  btnCopyOutput.addEventListener('click', () => {
+    const text = outputEditor.value;
+    if (!text.trim()) {
+      showToast('コピーする文章がありません');
+      return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('note用本文をコピーしました！');
     });
-  }
-
-  // ChatGPT Refinement Baton-Pass Copy (v3.0 New Feature)
-  if (btnCopyChatgpt) {
-    btnCopyChatgpt.addEventListener('click', () => {
-      const text = outputEditor.value.trim();
-      if (!text) {
-        showToast('コピーする文章がありません。原稿を作成・入力してください。');
-        return;
-      }
-      const chatgptPrompt = `以下の文章は、筆者（たまきぱずず）が執筆・生成した原稿です。
-あなたには「少し皮肉屋でサブカルに愛がある優秀な編集者」として、この文章を推敲・ブラッシュアップしてほしいです。
-
-【推敲の方針】
-・筆者の独特なメタ認知、生々しいリアリズム、思考の揺れ（脱線）、オチの軽妙さを殺さず活かすこと。
-・文章のリズムを整え、読者が一気に読めるテンポに仕上げること。
-・特定固有名詞の身バレ・コンプラリスクもチェックし、表現の抽象化や改善案があれば提示すること。
-
----
-【原稿本文】
-${text}
-
----
-上記をふまえ、推敲案とさらによくするためのアドバイスを出力してください。`;
-
-      navigator.clipboard.writeText(chatgptPrompt).then(() => {
-        showToast('🟢 ChatGPT推敲用プロンプト付きでコピーしました！');
-      }).catch(() => {
-        showToast('コピーに失敗しました。手動でコピーしてください。');
-      });
-    });
-  }
-
-  // Anonymize / Privacy Protection Fix (v3.0 New Feature)
-  if (btnAnonymizeNames) {
-    btnAnonymizeNames.addEventListener('click', () => {
-      let currentText = outputEditor.value;
-      if (!currentText.trim()) return;
-
-      const sensitiveWordsMap = [
-        { pattern: /マークIIプレミオ|マークⅡプレミオ/g, replacement: '90年代の国産セダン' },
-        { pattern: /HOTEL 伊丹|ホテル伊丹|HOTEL伊丹/gi, replacement: '郊外のビジネスホテル' },
-        { pattern: /ハイエース/g, replacement: 'ワンボックス車' },
-        { pattern: /セルシオ|シーマ/g, replacement: '旧型高級車' },
-        { pattern: /プリンスホテル|東急ホテル/g, replacement: '都内の老舗ホテル' }
-      ];
-
-      sensitiveWordsMap.forEach(item => {
-        currentText = currentText.replace(item.pattern, item.replacement);
-      });
-
-      outputEditor.value = currentText;
-      updateStats();
-      showToast('🛡️ 特定固有名詞をフィクション化（匿名表現に置換）しました！');
-    });
-  }
+  });
 
   btnDownloadMd.addEventListener('click', () => {
     const text = outputEditor.value;
@@ -1414,21 +1255,16 @@ ${text}
     localStorage.setItem('tamaki_history', JSON.stringify(state.history));
   }
 
-  if (btnHistory && modalHistory) {
-    btnHistory.addEventListener('click', () => {
-      renderHistory();
-      modalHistory.classList.remove('hidden');
-    });
-  }
+  btnHistory.addEventListener('click', () => {
+    renderHistory();
+    modalHistory.classList.remove('hidden');
+  });
 
-  if (btnCloseHistoryModal && modalHistory) {
-    btnCloseHistoryModal.addEventListener('click', () => {
-      modalHistory.classList.add('hidden');
-    });
-  }
+  btnCloseHistoryModal.addEventListener('click', () => {
+    modalHistory.classList.add('hidden');
+  });
 
   function renderHistory() {
-    if (!historyList) return;
     historyList.innerHTML = '';
     if (state.history.length === 0) {
       historyList.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 2rem;">まだ履歴がありません。</p>';
@@ -1448,11 +1284,11 @@ ${text}
         <div class="history-item-preview">${item.text}</div>
       `;
       el.addEventListener('click', () => {
-        if (outputEditor) outputEditor.value = item.text;
+        outputEditor.value = item.text;
         state.activeTab = 'preview';
-        if (tabPreview) tabPreview.classList.add('active');
-        if (tabPromptView) tabPromptView.classList.remove('active');
-        if (modalHistory) modalHistory.classList.add('hidden');
+        tabPreview.classList.add('active');
+        tabPromptView.classList.remove('active');
+        modalHistory.classList.add('hidden');
         updateStats();
         showToast('履歴から復元しました');
       });
@@ -1460,92 +1296,78 @@ ${text}
     });
   }
 
-  if (btnClearHistory) {
-    btnClearHistory.addEventListener('click', () => {
-      if (confirm('履歴をすべて消去しますか？')) {
-        state.history = [];
-        localStorage.removeItem('tamaki_history');
-        renderHistory();
-        showToast('履歴を消去しました');
-      }
-    });
-  }
+  btnClearHistory.addEventListener('click', () => {
+    if (confirm('履歴をすべて消去しますか？')) {
+      state.history = [];
+      localStorage.removeItem('tamaki_history');
+      renderHistory();
+      showToast('履歴を消去しました');
+    }
+  });
 
   // ==========================================
   // 12. API Settings Modal
   // ==========================================
-  if (btnApiSettings && modalApiSettings) {
-    btnApiSettings.addEventListener('click', () => {
-      if (apiKeyInput) apiKeyInput.value = state.apiKey;
-      if (apiModelSelect) apiModelSelect.value = state.apiModel;
-      modalApiSettings.classList.remove('hidden');
-    });
-  }
+  btnApiSettings.addEventListener('click', () => {
+    apiKeyInput.value = state.apiKey;
+    apiModelSelect.value = state.apiModel;
+    modalApiSettings.classList.remove('hidden');
+  });
 
-  if (btnCloseApiModal && modalApiSettings) {
-    btnCloseApiModal.addEventListener('click', () => {
-      modalApiSettings.classList.add('hidden');
-    });
-  }
+  btnCloseApiModal.addEventListener('click', () => {
+    modalApiSettings.classList.add('hidden');
+  });
 
-  if (btnSaveApi && modalApiSettings) {
-    btnSaveApi.addEventListener('click', () => {
-      const key = apiKeyInput ? apiKeyInput.value.trim() : '';
-      const model = apiModelSelect ? apiModelSelect.value : state.apiModel;
-      state.apiKey = key;
-      state.apiModel = model;
-      localStorage.setItem('tamaki_gemini_api_key', key);
-      localStorage.setItem('tamaki_gemini_model', model);
-      modalApiSettings.classList.add('hidden');
-      showToast('API設定を保存しました');
-    });
-  }
+  btnSaveApi.addEventListener('click', () => {
+    const key = apiKeyInput.value.trim();
+    const model = apiModelSelect.value;
+    state.apiKey = key;
+    state.apiModel = model;
+    localStorage.setItem('tamaki_gemini_api_key', key);
+    localStorage.setItem('tamaki_gemini_model', model);
+    modalApiSettings.classList.add('hidden');
+    showToast('API設定を保存しました');
+  });
 
-  if (btnFetchModels) {
-    btnFetchModels.addEventListener('click', async () => {
-      const key = apiKeyInput ? apiKeyInput.value.trim() : '';
-      if (!key) {
-        alert('先にAPIキーを入力してください');
-        return;
-      }
-      if (modelFetchStatus) {
-        modelFetchStatus.style.display = 'block';
-        modelFetchStatus.textContent = 'モデル一覧を取得中...';
-      }
-      try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error?.message || '取得に失敗しました');
+  btnFetchModels.addEventListener('click', async () => {
+    const key = apiKeyInput.value.trim();
+    if (!key) {
+      alert('先にAPIキーを入力してください');
+      return;
+    }
+    modelFetchStatus.style.display = 'block';
+    modelFetchStatus.textContent = 'モデル一覧を取得中...';
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || '取得に失敗しました');
 
-        const textModels = data.models.filter(m => 
-          m.supportedGenerationMethods?.includes('generateContent') &&
-          !m.name.includes('embedding') &&
-          !m.name.includes('aqa') &&
-          !m.name.includes('tts') &&
-          !m.name.includes('audio')
-        );
+      const textModels = data.models.filter(m => 
+        m.supportedGenerationMethods?.includes('generateContent') &&
+        !m.name.includes('embedding') &&
+        !m.name.includes('aqa') &&
+        !m.name.includes('tts') &&
+        !m.name.includes('audio')
+      );
 
-        if (textModels.length === 0) throw new Error('使用可能なテキスト生成モデルが見つかりませんでした');
+      if (textModels.length === 0) throw new Error('使用可能なテキスト生成モデルが見つかりませんでした');
 
-        if (apiModelSelect) {
-          apiModelSelect.innerHTML = '';
-          textModels.forEach(m => {
-            const id = m.name.replace('models/', '');
-            const opt = document.createElement('option');
-            opt.value = id;
-            opt.textContent = `${m.displayName || id} (${id})`;
-            apiModelSelect.appendChild(opt);
-          });
+      apiModelSelect.innerHTML = '';
+      textModels.forEach(m => {
+        const id = m.name.replace('models/', '');
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = `${m.displayName || id} (${id})`;
+        apiModelSelect.appendChild(opt);
+      });
 
-          const preferred = textModels.find(m => m.name.includes('gemini-1.5-flash-latest')) || textModels[0];
-          apiModelSelect.value = preferred.name.replace('models/', '');
-        }
-        if (modelFetchStatus) modelFetchStatus.textContent = `✅ ${textModels.length}件の利用可能モデルを取得しました！`;
-      } catch (err) {
-        if (modelFetchStatus) modelFetchStatus.textContent = `❌ エラー: ${err.message}`;
-      }
-    });
-  }
+      const preferred = textModels.find(m => m.name.includes('gemini-1.5-flash-latest')) || textModels[0];
+      apiModelSelect.value = preferred.name.replace('models/', '');
+      modelFetchStatus.textContent = `✅ ${textModels.length}件の利用可能モデルを取得しました！`;
+    } catch (err) {
+      modelFetchStatus.textContent = `❌ エラー: ${err.message}`;
+    }
+  });
 
   // ==========================================
   // 13. Guide Modal
@@ -1686,12 +1508,12 @@ ${text}
   });
 
   // Service Worker Registration for Offline PWA Support & Auto Update
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').then((reg) => {
         reg.update();
-      }).catch((e) => {
-        console.log('SW registration note:', e);
+      }).catch(() => {
+        // Silently ignore if offline caching is not supported in environment
       });
     });
   }
