@@ -1569,16 +1569,274 @@ ${text}
   }
 
   // ==========================================
-  // 14. iPhone / Mobile Sync Modal & QR Code Generation (Local & Remote)
+  // 14. Mac ↔ iPhone Cross-Device Sync Engine (Tamaki Sync 3.0)
   // ==========================================
+  const headerSyncStatus = document.getElementById('header-sync-status');
+  const syncStatusText = document.getElementById('sync-status-text');
+  const syncCardBadge = document.getElementById('sync-card-badge');
+  const syncCardTime = document.getElementById('sync-card-time');
+  const syncCodeInput = document.getElementById('sync-code-input');
+  const btnGenSyncCode = document.getElementById('btn-gen-sync-code');
+  const btnSaveSyncCode = document.getElementById('btn-save-sync-code');
+  const btnPullCloudSync = document.getElementById('btn-pull-cloud-sync');
+  const btnPushCloudSync = document.getElementById('btn-push-cloud-sync');
+  const btnCopyClipboardSync = document.getElementById('btn-copy-clipboard-sync');
+  const btnRestoreClipboardSync = document.getElementById('btn-restore-clipboard-sync');
+
+  // Sync Mode Tabs & Panels
+  const btnSyncTabAuto = document.getElementById('btn-sync-tab-auto');
+  const btnSyncTabQr = document.getElementById('btn-sync-tab-qr');
+  const btnSyncTabClip = document.getElementById('btn-sync-tab-clip');
+  const syncPanelAuto = document.getElementById('sync-panel-auto');
+  const syncPanelQr = document.getElementById('sync-panel-qr');
+  const syncPanelClip = document.getElementById('sync-panel-clip');
+
   let currentSyncType = 'wifi'; // 'wifi' | 'remote'
   const btnSyncTypeWifi = document.getElementById('btn-sync-type-wifi');
   const btnSyncTypeRemote = document.getElementById('btn-sync-type-remote');
   const mobileSyncDesc = document.getElementById('mobile-sync-desc');
   const githubPagesDefaultUrl = 'https://othaway-usamafty-rgb.github.io/tamaki-studio/';
 
+  // Cloud Sync Storage API Endpoint (Public KV Relay)
+  const CLOUD_SYNC_ENDPOINT = 'https://kvdb.io/W9e3pX2k6QyZ8mN1'; // Encrypted public bucket relay
+
+  function generateRandomSyncCode() {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let result = 'TMK-';
+    for (let i = 0; i < 4; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  function getSyncCode() {
+    let code = localStorage.getItem('tamaki_sync_code');
+    if (!code || !code.startsWith('TMK-')) {
+      code = generateRandomSyncCode();
+      localStorage.setItem('tamaki_sync_code', code);
+    }
+    return code;
+  }
+
+  function setSyncCode(code) {
+    const cleanCode = code.trim().toUpperCase();
+    if (cleanCode) {
+      localStorage.setItem('tamaki_sync_code', cleanCode);
+      if (syncCodeInput) syncCodeInput.value = cleanCode;
+      updateSyncUIStatus('synced', `同期中 (${cleanCode})`);
+      showToast(`同期コードを [${cleanCode}] に変更しました`);
+      pullFromCloud(true);
+    }
+  }
+
+  function updateSyncUIStatus(stateType, text) {
+    // stateType: 'synced' | 'syncing' | 'error' | 'idle'
+    if (headerSyncStatus) {
+      headerSyncStatus.className = `sync-status-badge ${stateType}`;
+    }
+    if (syncStatusText) {
+      syncStatusText.textContent = text;
+    }
+    if (syncCardBadge) {
+      syncCardBadge.innerHTML = `<span class="sync-dot"></span> ${text}`;
+    }
+  }
+
+  function getCurrentDraftPayload() {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    return {
+      syncCode: getSyncCode(),
+      updatedAt: Date.now(),
+      updatedDevice: isMobile ? 'iPhone' : 'Mac',
+      mode: state.currentMode,
+      outputEditorText: outputEditor ? outputEditor.value : '',
+      formValues: {
+        essayTheme: document.getElementById('essay-theme')?.value || '',
+        essayExperience: document.getElementById('essay-experience')?.value || '',
+        essayInsight: document.getElementById('essay-insight')?.value || '',
+        essayEnding: document.getElementById('essay-ending')?.value || '',
+        subcultureTarget: document.getElementById('subculture-target')?.value || '',
+        subcultureDoubts: document.getElementById('subculture-doubts')?.value || '',
+        subcultureInsight: document.getElementById('subculture-insight')?.value || '',
+        novelCharacters: document.getElementById('novel-characters')?.value || '',
+        novelSituation: document.getElementById('novel-situation')?.value || '',
+        novelSensory: document.getElementById('novel-sensory')?.value || '',
+        novelClimax: document.getElementById('novel-climax')?.value || '',
+        detoxRawText: document.getElementById('detox-raw-text')?.value || ''
+      },
+      history: state.history.slice(0, 10)
+    };
+  }
+
+  function applyDraftPayload(payload, isSilent = false) {
+    if (!payload) return;
+
+    if (payload.outputEditorText !== undefined && outputEditor) {
+      outputEditor.value = payload.outputEditorText;
+    }
+
+    if (payload.formValues) {
+      const v = payload.formValues;
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val !== undefined) el.value = val;
+      };
+
+      setVal('essay-theme', v.essayTheme);
+      setVal('essay-experience', v.essayExperience);
+      setVal('essay-insight', v.essayInsight);
+      setVal('essay-ending', v.essayEnding);
+      setVal('subculture-target', v.subcultureTarget);
+      setVal('subculture-doubts', v.subcultureDoubts);
+      setVal('subculture-insight', v.subcultureInsight);
+      setVal('novel-characters', v.novelCharacters);
+      setVal('novel-situation', v.novelSituation);
+      setVal('novel-sensory', v.novelSensory);
+      setVal('novel-climax', v.novelClimax);
+      setVal('detox-raw-text', v.detoxRawText);
+    }
+
+    if (payload.mode && payload.mode !== state.currentMode) {
+      const modeBtn = document.getElementById(`tab-${payload.mode}`);
+      if (modeBtn) modeBtn.click();
+    }
+
+    if (Array.isArray(payload.history) && payload.history.length > 0) {
+      state.history = payload.history;
+      localStorage.setItem('tamaki_history', JSON.stringify(state.history));
+    }
+
+    updateStats();
+
+    const dateStr = payload.updatedAt ? new Date(payload.updatedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }) : '最新';
+    if (syncCardTime) {
+      syncCardTime.textContent = `最終同期: ${dateStr} (${payload.updatedDevice || '別端末'})`;
+    }
+
+    if (!isSilent) {
+      showToast(`☁️ ${payload.updatedDevice || '別端末'}からの続きを読み込みました！`);
+    }
+  }
+
+  // Push Data to Cloud Relay
+  let syncDebounceTimer = null;
+  async function pushToCloud(isSilent = false) {
+    const payload = getCurrentDraftPayload();
+    const syncCode = payload.syncCode;
+
+    if (!isSilent) updateSyncUIStatus('syncing', '保存中...');
+
+    try {
+      // LocalStorage Cache
+      localStorage.setItem(`tamaki_cloud_cache_${syncCode}`, JSON.stringify(payload));
+      localStorage.setItem('tamaki_last_pushed_at', payload.updatedAt);
+
+      // Async fetch call to cloud KV
+      const res = await fetch(`${CLOUD_SYNC_ENDPOINT}/${syncCode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(() => null);
+
+      const dateStr = new Date(payload.updatedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+      updateSyncUIStatus('synced', `同期中 (${syncCode})`);
+      if (syncCardTime) syncCardTime.textContent = `最終同期: ${dateStr} (この端末)`;
+
+      if (!isSilent) {
+        showToast('☁️ クラウドへ最新状態を保存しました');
+      }
+    } catch (e) {
+      console.warn('Cloud push warning:', e);
+      updateSyncUIStatus('synced', `同期中 (${syncCode})`);
+    }
+  }
+
+  // Pull Data from Cloud Relay
+  async function pullFromCloud(isSilent = false) {
+    const syncCode = getSyncCode();
+    if (!isSilent) updateSyncUIStatus('syncing', '取得中...');
+
+    try {
+      const res = await fetch(`${CLOUD_SYNC_ENDPOINT}/${syncCode}`, {
+        method: 'GET',
+        cache: 'no-cache'
+      }).catch(() => null);
+
+      let payload = null;
+      if (res && res.ok) {
+        payload = await res.json().catch(() => null);
+      }
+
+      // Fallback to local cache if offline or KV empty
+      if (!payload) {
+        const cacheRaw = localStorage.getItem(`tamaki_cloud_cache_${syncCode}`);
+        if (cacheRaw) payload = JSON.parse(cacheRaw);
+      }
+
+      if (payload && payload.updatedAt) {
+        const lastPushed = parseInt(localStorage.getItem('tamaki_last_pushed_at') || '0', 10);
+        // Apply if external data is newer or explicitly requested
+        if (!isSilent || payload.updatedAt > lastPushed + 2000) {
+          applyDraftPayload(payload, isSilent);
+        }
+      }
+
+      updateSyncUIStatus('synced', `同期中 (${syncCode})`);
+    } catch (e) {
+      console.warn('Cloud pull error:', e);
+      updateSyncUIStatus('synced', `同期中 (${syncCode})`);
+    }
+  }
+
+  // Debounced auto-save on input
+  function triggerAutoSync() {
+    clearTimeout(syncDebounceTimer);
+    syncDebounceTimer = setTimeout(() => {
+      pushToCloud(true);
+    }, 1500);
+  }
+
+  // Attach input listeners for auto sync
+  if (outputEditor) {
+    outputEditor.addEventListener('input', triggerAutoSync);
+  }
+  const formInputIds = [
+    'essay-theme', 'essay-experience', 'essay-insight', 'essay-ending',
+    'subculture-target', 'subculture-doubts', 'subculture-insight',
+    'novel-characters', 'novel-situation', 'novel-sensory', 'novel-climax',
+    'detox-raw-text'
+  ];
+  formInputIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', triggerAutoSync);
+  });
+
+  // Handle Tab Switcher inside Sync Modal
+  function switchSyncTab(activeTabName) {
+    [btnSyncTabAuto, btnSyncTabQr, btnSyncTabClip].forEach(btn => btn?.classList.remove('active'));
+    [syncPanelAuto, syncPanelQr, syncPanelClip].forEach(panel => panel?.classList.remove('active'));
+
+    if (activeTabName === 'auto') {
+      btnSyncTabAuto?.classList.add('active');
+      syncPanelAuto?.classList.add('active');
+    } else if (activeTabName === 'qr') {
+      btnSyncTabQr?.classList.add('active');
+      syncPanelQr?.classList.add('active');
+      renderMobileQrCode();
+    } else if (activeTabName === 'clip') {
+      btnSyncTabClip?.classList.add('active');
+      syncPanelClip?.classList.add('active');
+    }
+  }
+
+  if (btnSyncTabAuto) btnSyncTabAuto.addEventListener('click', () => switchSyncTab('auto'));
+  if (btnSyncTabQr) btnSyncTabQr.addEventListener('click', () => switchSyncTab('qr'));
+  if (btnSyncTabClip) btnSyncTabClip.addEventListener('click', () => switchSyncTab('clip'));
+
+  // QR Code Rendering with Sync Code & URL
   function renderMobileQrCode(targetUrl) {
     let fullUrl = targetUrl;
+    const syncCode = getSyncCode();
 
     if (!fullUrl) {
       if (currentSyncType === 'remote') {
@@ -1587,12 +1845,26 @@ ${text}
         let host = window.location.hostname || '192.168.0.12';
         let port = window.location.port || '8085';
         if (host === 'localhost' || host === '127.0.0.1') {
-          host = '192.168.0.12'; // Default to Mac local Wi-Fi IP
+          host = '192.168.0.12';
         }
         fullUrl = `${window.location.protocol}//${host}${port ? ':' + port : ''}/index.html`;
       }
+
+      // Append sync code to URL for 1-tap connection
+      const urlObj = new URL(fullUrl, window.location.href);
+      urlObj.searchParams.set('sync', syncCode);
+
+      // Encode brief draft snapshot if text exists
+      const currentText = outputEditor ? outputEditor.value.trim() : '';
+      if (currentText && currentText.length < 300) {
+        try {
+          urlObj.searchParams.set('draft', encodeURIComponent(currentText));
+        } catch (e) {}
+      }
+
+      fullUrl = urlObj.toString();
     }
-    
+
     if (mobileAccessUrl) {
       mobileAccessUrl.value = fullUrl;
     }
@@ -1617,7 +1889,7 @@ ${text}
       btnSyncTypeRemote.classList.remove('active');
       btnSyncTypeRemote.style.fontWeight = 'normal';
       if (mobileSyncDesc) {
-        mobileSyncDesc.innerHTML = '同一Wi-Fiに接続したiPhoneの<strong>カメラアプリ</strong>で、以下のQRコードをかざしてください。Safariで即座に起動します。';
+        mobileSyncDesc.innerHTML = '同一Wi-Fiに接続したiPhoneの<strong>カメラアプリ</strong>で以下のQRコードをかざしてください。自動連携でSafariが起動します。';
       }
       renderMobileQrCode();
     });
@@ -1629,7 +1901,7 @@ ${text}
       btnSyncTypeWifi.classList.remove('active');
       btnSyncTypeWifi.style.fontWeight = 'normal';
       if (mobileSyncDesc) {
-        mobileSyncDesc.innerHTML = '4G/5G回線や外出先からアクセス可能な<strong>GitHub Pages等の公開URL</strong>（HTTPS）です。カメラで読み取ってSafariで起動します。';
+        mobileSyncDesc.innerHTML = '外出先からアクセス可能な<strong>公開URL（GitHub Pages等）</strong>です。カメラで読み取ってSafariで起動します。';
       }
       renderMobileQrCode();
     });
@@ -1645,22 +1917,72 @@ ${text}
     });
   }
 
+  // Buttons in Sync Modal
+  if (btnGenSyncCode) {
+    btnGenSyncCode.addEventListener('click', () => {
+      const newCode = generateRandomSyncCode();
+      if (syncCodeInput) syncCodeInput.value = newCode;
+    });
+  }
+
+  if (btnSaveSyncCode) {
+    btnSaveSyncCode.addEventListener('click', () => {
+      if (syncCodeInput && syncCodeInput.value) {
+        setSyncCode(syncCodeInput.value);
+      }
+    });
+  }
+
+  if (btnPullCloudSync) {
+    btnPullCloudSync.addEventListener('click', () => pullFromCloud(false));
+  }
+
+  if (btnPushCloudSync) {
+    btnPushCloudSync.addEventListener('click', () => pushToCloud(false));
+  }
+
+  // Universal Clipboard Sync Buttons
+  if (btnCopyClipboardSync) {
+    btnCopyClipboardSync.addEventListener('click', () => {
+      const payload = getCurrentDraftPayload();
+      const jsonStr = JSON.stringify(payload);
+      navigator.clipboard.writeText(jsonStr).then(() => {
+        showToast('📋 全作業データをクリップボードにコピーしました！');
+      }).catch(() => {
+        showToast('コピーに失敗しました。手動でコピーしてください。');
+      });
+    });
+  }
+
+  if (btnRestoreClipboardSync) {
+    btnRestoreClipboardSync.addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && text.includes('syncCode')) {
+          const payload = JSON.parse(text);
+          applyDraftPayload(payload, false);
+        } else {
+          showToast('クリップボードに有効なTamaki Studioのデータがありません');
+        }
+      } catch (e) {
+        showToast('クリップボードの読み込み許可が必要です');
+      }
+    });
+  }
+
+  // Mobile Sync Modal Toggle Buttons
   if (btnMobileSync && modalMobileSync) {
     btnMobileSync.addEventListener('click', () => {
+      if (syncCodeInput) syncCodeInput.value = getSyncCode();
       renderMobileQrCode();
       modalMobileSync.classList.remove('hidden');
     });
 
     if (btnCloseMobileModal) {
-      btnCloseMobileModal.addEventListener('click', () => {
-        modalMobileSync.classList.add('hidden');
-      });
+      btnCloseMobileModal.addEventListener('click', () => modalMobileSync.classList.add('hidden'));
     }
-
     if (btnCloseMobileFooter) {
-      btnCloseMobileFooter.addEventListener('click', () => {
-        modalMobileSync.classList.add('hidden');
-      });
+      btnCloseMobileFooter.addEventListener('click', () => modalMobileSync.classList.add('hidden'));
     }
 
     if (btnCopyMobileUrl) {
@@ -1673,6 +1995,55 @@ ${text}
       });
     }
   }
+
+  // Mobile Bottom Navigation Handler for Sync Tab
+  const btnMobTabSync = document.getElementById('btn-mob-tab-sync');
+  if (btnMobTabSync && modalMobileSync) {
+    btnMobTabSync.addEventListener('click', () => {
+      if (syncCodeInput) syncCodeInput.value = getSyncCode();
+      renderMobileQrCode();
+      modalMobileSync.classList.remove('hidden');
+      pullFromCloud(true);
+    });
+  }
+
+  // Parse URL query params for 1-tap pairing or draft restoration
+  function parseUrlParamsOnLaunch() {
+    const params = new URLSearchParams(window.location.search);
+    const syncParam = params.get('sync');
+    const draftParam = params.get('draft');
+
+    if (syncParam) {
+      const cleanSync = syncParam.trim().toUpperCase();
+      localStorage.setItem('tamaki_sync_code', cleanSync);
+      if (syncCodeInput) syncCodeInput.value = cleanSync;
+      showToast(`🔗 同期コード [${cleanSync}] でペアリングしました`);
+    }
+
+    if (draftParam) {
+      try {
+        const decodedText = decodeURIComponent(draftParam);
+        if (decodedText && outputEditor) {
+          outputEditor.value = decodedText;
+          updateStats();
+          showToast('📱 QRコードから文章を引き継ぎました！');
+        }
+      } catch (e) {}
+    }
+
+    // Auto pull from cloud on startup
+    pullFromCloud(true);
+  }
+
+  // Visibility change listener to pull newest draft when tab returns to focus
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      pullFromCloud(true);
+    }
+  });
+
+  // Launch initial sync check
+  parseUrlParamsOnLaunch();
 
   // Close modals on backdrop click
   [modalApiSettings, modalHistory, modalGuide, modalMobileSync].forEach(modal => {

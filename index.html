@@ -37,16 +37,17 @@
         </div>
       </div>
       <div class="header-actions">
+        <button id="btn-mobile-sync" class="btn-secondary btn-sm btn-highlight-mobile" title="Mac ↔ iPhone クロスデバイス連続作業同期">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19.5 20 17m0 0-2.5-2.5M20 17H10C7.2 17 5 14.8 5 12s2.2-5 5-5h10M6.5 4.5 4 7m0 0 2.5 2.5M4 7h10c2.8 0 5 2.2 5 5s-2.2 5-5 5H4"/></svg>
+          <span>☁️ デバイス同期</span>
+          <span class="sync-status-badge" id="header-sync-status"><span class="sync-dot"></span><span id="sync-status-text">未同期</span></span>
+        </button>
         <a href="./v2.2.1/index.html" target="_blank" id="btn-v221" class="btn-secondary btn-sm" title="旧バージョン v2.2.1 Pro を開く">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
           <span>v2.2.1旧版</span>
         </a>
-        <button id="btn-mobile-sync" class="btn-secondary btn-sm btn-highlight-mobile" title="iPhoneで開く (QRコード・連携)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-          <span>📱 iPhone連携</span>
-        </button>
         <button id="btn-guide" class="btn-secondary btn-sm" title="取扱説明書・ガイド">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 1 4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
           <span>取扱説明書</span>
         </button>
         <button id="btn-api-settings" class="btn-secondary btn-sm" title="API設定">
@@ -610,33 +611,109 @@
       </div>
     </div>
 
-    <!-- Modal: iPhone / Mobile Connection (QR Code) -->
+    <!-- Modal: Mac ↔ iPhone Cross-Device Sync (Tamaki Sync 3.0) -->
     <div id="modal-mobile-sync" class="modal-backdrop hidden">
-      <div class="modal-card">
+      <div class="modal-card modal-card-large">
         <div class="modal-header">
-          <h3>📱 iPhone / スマホ連携（内外アクセス対応）</h3>
+          <h3>☁️ Mac ↔ iPhone クロスデバイス連続作業同期 (Tamaki Sync 3.0)</h3>
           <button class="modal-close" id="btn-close-mobile-modal">&times;</button>
         </div>
-        <div class="modal-body" style="text-align: center;">
-          <!-- Connection Mode Switcher -->
-          <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1rem;">
-            <button id="btn-sync-type-wifi" class="btn-secondary btn-sm active" style="flex: 1; font-weight: 600;">🏠 自宅Wi-Fi用</button>
-            <button id="btn-sync-type-remote" class="btn-secondary btn-sm" style="flex: 1;">🌐 外出先用 (GitHub Pages等)</button>
+        <div class="modal-body">
+          <!-- Sync Mode Tabs -->
+          <div class="sync-nav-tabs">
+            <button id="btn-sync-tab-auto" class="sync-tab-btn active">
+              <span>☁️ クラウド自動連動</span>
+            </button>
+            <button id="btn-sync-tab-qr" class="sync-tab-btn">
+              <span>📱 1タップQR引き継ぎ</span>
+            </button>
+            <button id="btn-sync-tab-clip" class="sync-tab-btn">
+              <span>📋 クリップボード連携</span>
+            </button>
           </div>
 
-          <p class="modal-desc" id="mobile-sync-desc" style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
-            同一Wi-Fiに接続したiPhoneの<strong>カメラアプリ</strong>で、以下のQRコードをかざしてください。Safariで即座に起動します。
-          </p>
-          
-          <div id="qrcode-container" class="qrcode-wrapper" style="display: inline-flex; padding: 1rem; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 0.5rem auto 1rem;">
-            <!-- QR Code will be injected here -->
+          <!-- Panel 1: Cloud Auto Sync -->
+          <div id="sync-panel-auto" class="sync-panel active">
+            <div class="sync-status-card">
+              <div class="sync-status-header">
+                <span class="sync-badge-large" id="sync-card-badge"><span class="sync-dot"></span> リアルタイム同期中</span>
+                <span class="sync-time-text" id="sync-card-time">最終同期: 未同期</span>
+              </div>
+              <p class="sync-desc">
+                MacとiPhoneで<strong>同じペアリング同期コード</strong>を設定すると、文字を入力するたびにクラウドへ保存され、別端末を開いたときにそのまま続きから作業を再開できます。
+              </p>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
+              <label style="font-size: 0.8rem; font-weight: 600;">🔑 あなたのペアリング同期コード (Sync Key)</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="sync-code-input" style="font-family: monospace; font-size: 1rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; text-align: center;" placeholder="TMK-XXXX">
+                <button id="btn-gen-sync-code" class="btn-secondary btn-sm" title="新しいコードを生成">🎲 再生成</button>
+                <button id="btn-save-sync-code" class="btn-primary btn-sm">接続設定</button>
+              </div>
+              <p class="help-text">※ iPhoneでも同じコードを入れるだけでペアリングが完了します。</p>
+            </div>
+
+            <div class="sync-action-buttons" style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+              <button id="btn-pull-cloud-sync" class="btn-secondary btn-sm" style="flex: 1; padding: 0.75rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>クラウドから続きを取得</span>
+              </button>
+              <button id="btn-push-cloud-sync" class="btn-primary btn-sm" style="flex: 1; padding: 0.75rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 18a5 5 0 0 0-10 0"></path><line x1="12" y1="9" x2="12" y2="15"></line><line x1="9" y1="12" x2="15" y2="12"></line><path d="M17.5 19H19a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 7.025A5.4 5.4 0 0 0 11 3.5C7.96 3.5 5.5 5.96 5.5 9c0 .4.04.79.12 1.17A4.5 4.5 0 0 0 2 14.5 4.5 4.5 0 0 0 6.5 19H7"></path></svg>
+                <span>今すぐクラウドに保存</span>
+              </button>
+            </div>
           </div>
 
-          <div class="form-group" style="text-align: left; margin-top: 0.5rem;">
-            <label style="font-size: 0.75rem;" id="mobile-url-label">アクセスURL（手動入力・コピー用）</label>
-            <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="mobile-access-url" style="font-family: monospace; font-size: 0.85rem;" value="http://192.168.0.12:8085">
-              <button id="btn-copy-mobile-url" class="btn-secondary btn-sm" style="white-space: nowrap;">URLコピー</button>
+          <!-- Panel 2: Direct QR Handoff -->
+          <div id="sync-panel-qr" class="sync-panel">
+            <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1rem;">
+              <button id="btn-sync-type-wifi" class="btn-secondary btn-sm active" style="flex: 1; font-weight: 600;">🏠 自宅Wi-Fi用</button>
+              <button id="btn-sync-type-remote" class="btn-secondary btn-sm" style="flex: 1;">🌐 外出先用 (GitHub Pages等)</button>
+            </div>
+
+            <p class="modal-desc" id="mobile-sync-desc" style="margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
+              iPhoneの<strong>カメラアプリ</strong>で以下のQRコードをかざすと、自動的にペアリングされた状態でSafariが起動し、続きが書けます。
+            </p>
+            
+            <div style="text-align: center;">
+              <div id="qrcode-container" class="qrcode-wrapper" style="display: inline-flex; padding: 1rem; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 0.5rem auto 1rem;">
+                <!-- QR Code will be injected here -->
+              </div>
+            </div>
+
+            <div class="form-group" style="text-align: left; margin-top: 0.5rem;">
+              <label style="font-size: 0.75rem;" id="mobile-url-label">直接アクセス＆引き継ぎURL</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="mobile-access-url" style="font-family: monospace; font-size: 0.85rem;" value="http://192.168.0.12:8085">
+                <button id="btn-copy-mobile-url" class="btn-secondary btn-sm" style="white-space: nowrap;">URLコピー</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 3: Universal Clipboard Sync -->
+          <div id="sync-panel-clip" class="sync-panel">
+            <p class="modal-desc" style="margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+              MacとiPhoneが同じApple IDでログインしている場合、<strong>ユニバーサルクリップボード (Handoff)</strong> を使って一瞬で文章データを引き継げます。
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <button id="btn-copy-clipboard-sync" class="btn-secondary btn-sm" style="padding: 0.8rem; text-align: left; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <div style="font-weight: 600; font-size: 0.9rem;">📋 現在の作業全データをクリップボードにコピー</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">入力中の文章・下書き・モデル設定をまとめてコピーします</div>
+                </div>
+                <span class="btn-icon">➔</span>
+              </button>
+
+              <button id="btn-restore-clipboard-sync" class="btn-primary btn-sm" style="padding: 0.8rem; text-align: left; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <div style="font-weight: 600; font-size: 0.9rem;">📥 クリップボードから作業全データを復元</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">コピーされたデータを読み込んでエディタに復元します</div>
+                </div>
+                <span class="btn-icon">➔</span>
+              </button>
             </div>
           </div>
 
@@ -646,7 +723,7 @@
               <li>iPhoneの <strong>Safari</strong> でアクセスURL（またはQRコード）を開く</li>
               <li>画面下の <strong>「共有」ボタン</strong>（四角から上矢印）をタップ</li>
               <li><strong>「ホーム画面に追加」</strong> をタップ</li>
-              <li>ホーム画面に専用アイコンが並び、カフェや移動中でも全画面ネイティブアプリとして起動できます！</li>
+              <li>ホーム画面に専用アイコンが並び、全画面アプリとして起動・スムーズに連携できます！</li>
             </ol>
           </div>
         </div>
@@ -660,12 +737,16 @@
     <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
       <button class="mobile-nav-btn active" id="btn-mob-tab-input" data-target="input">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-        <span>⚙️ 設定・入力</span>
+        <span>⚙️ 設定</span>
       </button>
       <button class="mobile-nav-btn" id="btn-mob-tab-editor" data-target="editor">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-        <span>📝 執筆・結果</span>
+        <span>📝 執筆</span>
         <span class="mob-sync-pill" id="mob-sync-pill">0%</span>
+      </button>
+      <button class="mobile-nav-btn" id="btn-mob-tab-sync" data-target="sync">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19.5 20 17m0 0-2.5-2.5M20 17H10C7.2 17 5 14.8 5 12s2.2-5 5-5h10M6.5 4.5 4 7m0 0 2.5 2.5M4 7h10c2.8 0 5 2.2 5 5s-2.2 5-5 5H4"/></svg>
+        <span>☁️ 同期</span>
       </button>
     </nav>
   </div>
@@ -674,6 +755,6 @@
   <div id="toast-message" class="toast hidden">コピーしました！</div>
 
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=3.0.0"></script>
+  <script src="app.js?v=3.0.1"></script>
 </body>
 </html>
