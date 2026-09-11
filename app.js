@@ -1,6 +1,6 @@
 /**
- * Tamaki Studio v3.0 Ultra - Application Logic
- * 鋭いメタ認知、思考の迷走プロセス、高解像度描写、オチのキレ、ChatGPT推敲連携、無機質デトックス、コンプラアラート、一般ビジネス論昇華を完全搭載
+ * Tamaki Studio v3.0.1 Ultra - Application Logic
+ * 鋭いメタ認知、思考の迷走プロセス、高解像度描写、オチのキレ、全入力自動保存・自動復元、ChatGPT推敲連携、無機質デトックスを完全搭載
  */
 
 document.addEventListener('DOMContentLoaded', () => {
