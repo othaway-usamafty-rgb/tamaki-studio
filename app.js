@@ -1642,6 +1642,16 @@ ${text}
     }
   }
 
+  const LOCAL_DRAFT_KEY = 'tamaki_local_draft';
+
+  function updateAutosaveBadge(statusText = '自動保存済み') {
+    const timeStr = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const badge = document.getElementById('autosave-status-text');
+    if (badge) {
+      badge.textContent = `💾 ${statusText} (${timeStr})`;
+    }
+  }
+
   function getCurrentDraftPayload() {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     return {
@@ -1650,6 +1660,15 @@ ${text}
       updatedDevice: isMobile ? 'iPhone' : 'Mac',
       mode: state.currentMode,
       outputEditorText: outputEditor ? outputEditor.value : '',
+      tuning: {
+        tone: state.tuning.tone,
+        meta: state.tuning.meta,
+        turbulence: state.tuning.turbulence,
+        detail: state.tuning.detail,
+        tempo: state.tuning.tempo,
+        antiAi: state.tuning.antiAi,
+        delusion: state.tuning.delusion
+      },
       formValues: {
         essayTheme: document.getElementById('essay-theme')?.value || '',
         essayExperience: document.getElementById('essay-experience')?.value || '',
@@ -1658,14 +1677,65 @@ ${text}
         subcultureTarget: document.getElementById('subculture-target')?.value || '',
         subcultureDoubts: document.getElementById('subculture-doubts')?.value || '',
         subcultureInsight: document.getElementById('subculture-insight')?.value || '',
+        subcultureEnding: document.getElementById('subculture-ending')?.value || '',
         novelCharacters: document.getElementById('novel-characters')?.value || '',
-        novelSituation: document.getElementById('novel-situation')?.value || '',
-        novelSensory: document.getElementById('novel-sensory')?.value || '',
-        novelClimax: document.getElementById('novel-climax')?.value || '',
-        detoxRawText: document.getElementById('detox-raw-text')?.value || ''
+        novelSetting: document.getElementById('novel-setting')?.value || '',
+        novelFocus: document.getElementById('novel-focus')?.value || '',
+        novelEnding: document.getElementById('novel-ending')?.value || '',
+        detoxInput: document.getElementById('detox-input')?.value || ''
       },
       history: state.history.slice(0, 10)
     };
+  }
+
+  function saveLocalDraft() {
+    try {
+      const payload = getCurrentDraftPayload();
+      localStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify(payload));
+      updateAutosaveBadge('自動保存済み');
+    } catch (e) {
+      console.warn('Failed to save local draft:', e);
+    }
+  }
+
+  function loadLocalDraft() {
+    try {
+      const raw = localStorage.getItem(LOCAL_DRAFT_KEY);
+      if (raw) {
+        const payload = JSON.parse(raw);
+        applyDraftPayload(payload, true);
+        const dateStr = payload.updatedAt ? new Date(payload.updatedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }) : '';
+        const badge = document.getElementById('autosave-status-text');
+        if (badge) {
+          badge.textContent = `💾 下書き自動復元 (${dateStr})`;
+        }
+        return true;
+      }
+    } catch (e) {
+      console.warn('Failed to load local draft:', e);
+    }
+    return false;
+  }
+
+  function clearLocalDraft() {
+    if (confirm('記載中のすべての項目および下書きをクリアして初期状態に戻しますか？')) {
+      localStorage.removeItem(LOCAL_DRAFT_KEY);
+      const allSaveInputIds = [
+        'essay-theme', 'essay-experience', 'essay-insight', 'essay-ending',
+        'subculture-target', 'subculture-doubts', 'subculture-insight', 'subculture-ending',
+        'novel-characters', 'novel-setting', 'novel-focus', 'novel-ending',
+        'detox-input'
+      ];
+      allSaveInputIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      if (outputEditor) outputEditor.value = '';
+      if (btnResetTuning) btnResetTuning.click();
+      const badge = document.getElementById('autosave-status-text');
+      if (badge) badge.textContent = '💾 下書きクリア完了';
+      showToast('🗑️ 下書きをクリアしました');
+    }
   }
 
   function applyDraftPayload(payload, isSilent = false) {
@@ -1689,11 +1759,49 @@ ${text}
       setVal('subculture-target', v.subcultureTarget);
       setVal('subculture-doubts', v.subcultureDoubts);
       setVal('subculture-insight', v.subcultureInsight);
+      setVal('subculture-ending', v.subcultureEnding);
       setVal('novel-characters', v.novelCharacters);
-      setVal('novel-situation', v.novelSituation);
-      setVal('novel-sensory', v.novelSensory);
-      setVal('novel-climax', v.novelClimax);
-      setVal('detox-raw-text', v.detoxRawText);
+      setVal('novel-setting', v.novelSetting || v.novelSituation);
+      setVal('novel-focus', v.novelFocus || v.novelSensory);
+      setVal('novel-ending', v.novelEnding || v.novelClimax);
+      setVal('detox-input', v.detoxInput || v.detoxRawText);
+    }
+
+    if (payload.tuning) {
+      const t = payload.tuning;
+      if (t.tone !== undefined) {
+        state.tuning.tone = t.tone;
+        if (sliderTone) sliderTone.value = t.tone;
+        if (valTone && toneLabels) valTone.textContent = toneLabels[t.tone] || '';
+      }
+      if (t.meta !== undefined) {
+        state.tuning.meta = t.meta;
+        if (sliderMeta) sliderMeta.value = t.meta;
+        if (valMeta && metaLabels) valMeta.textContent = metaLabels[t.meta] || '';
+      }
+      if (t.turbulence !== undefined) {
+        state.tuning.turbulence = t.turbulence;
+        if (sliderTurbulence) sliderTurbulence.value = t.turbulence;
+        if (valTurbulence && turbulenceLabels) valTurbulence.textContent = turbulenceLabels[t.turbulence] || '';
+      }
+      if (t.detail !== undefined) {
+        state.tuning.detail = t.detail;
+        if (sliderDetail) sliderDetail.value = t.detail;
+        if (valDetail && detailLabels) valDetail.textContent = detailLabels[t.detail] || '';
+      }
+      if (t.tempo !== undefined) {
+        state.tuning.tempo = t.tempo;
+        if (sliderTempo) sliderTempo.value = t.tempo;
+        if (valTempo && tempoLabels) valTempo.textContent = tempoLabels[t.tempo] || '';
+      }
+      if (t.antiAi !== undefined) {
+        state.tuning.antiAi = t.antiAi;
+        if (toggleAntiAi) toggleAntiAi.checked = t.antiAi;
+      }
+      if (t.delusion !== undefined) {
+        state.tuning.delusion = t.delusion;
+        if (toggleDelusion) toggleDelusion.checked = t.delusion;
+      }
     }
 
     if (payload.mode && payload.mode !== state.currentMode) {
@@ -1720,6 +1828,8 @@ ${text}
 
   // Push Data to Cloud Relay
   let syncDebounceTimer = null;
+  let localSaveDebounceTimer = null;
+
   async function pushToCloud(isSilent = false) {
     const payload = getCurrentDraftPayload();
     const syncCode = payload.syncCode;
@@ -1790,6 +1900,13 @@ ${text}
 
   // Debounced auto-save on input
   function triggerAutoSync() {
+    // 1. Immediate local storage auto-save (300ms)
+    clearTimeout(localSaveDebounceTimer);
+    localSaveDebounceTimer = setTimeout(() => {
+      saveLocalDraft();
+    }, 300);
+
+    // 2. Cloud relay sync (1500ms)
     clearTimeout(syncDebounceTimer);
     syncDebounceTimer = setTimeout(() => {
       pushToCloud(true);
@@ -1802,14 +1919,39 @@ ${text}
   }
   const formInputIds = [
     'essay-theme', 'essay-experience', 'essay-insight', 'essay-ending',
-    'subculture-target', 'subculture-doubts', 'subculture-insight',
-    'novel-characters', 'novel-situation', 'novel-sensory', 'novel-climax',
-    'detox-raw-text'
+    'subculture-target', 'subculture-doubts', 'subculture-insight', 'subculture-ending',
+    'novel-characters', 'novel-setting', 'novel-focus', 'novel-ending',
+    'detox-input'
   ];
   formInputIds.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener('input', triggerAutoSync);
+    if (el) {
+      el.addEventListener('input', triggerAutoSync);
+      el.addEventListener('change', triggerAutoSync);
+    }
   });
+
+  // Attach slider & toggle listeners
+  [sliderTone, sliderMeta, sliderTurbulence, sliderDetail, sliderTempo].forEach(slider => {
+    slider?.addEventListener('input', triggerAutoSync);
+    slider?.addEventListener('change', triggerAutoSync);
+  });
+
+  [toggleAntiAi, toggleDelusion].forEach(toggle => {
+    toggle?.addEventListener('change', triggerAutoSync);
+  });
+
+  window.addEventListener('beforeunload', () => saveLocalDraft());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      saveLocalDraft();
+    }
+  });
+
+  const btnClearDraft = document.getElementById('btn-clear-draft');
+  if (btnClearDraft) {
+    btnClearDraft.addEventListener('click', clearLocalDraft);
+  }
 
   // Handle Tab Switcher inside Sync Modal
   function switchSyncTab(activeTabName) {
@@ -2068,6 +2210,7 @@ ${text}
   }
 
   // Initial setup
+  loadLocalDraft();
   renderPalette();
   updateStats();
 });
