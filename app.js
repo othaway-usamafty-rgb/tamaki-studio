@@ -1884,10 +1884,28 @@ ${text}
 
       const encoded = encodePayloadToBase64(payload);
       if (encoded) {
-        await fetch(`${KV_BASE_URL}/UpdateValue/${KV_APP_KEY}/${syncCode}/${encoded}`, {
+        const chunkSize = 120;
+        const chunks = [];
+        for (let i = 0; i < encoded.length; i += chunkSize) {
+          chunks.push(encoded.slice(i, i + chunkSize));
+        }
+
+        // 1. Save meta chunk count
+        await fetch(`${KV_BASE_URL}/UpdateValue/${KV_APP_KEY}/${syncCode}_meta/${chunks.length}`, {
           method: 'POST',
-          headers: { 'Content-Length': '0' }
+          headers: { 'Content-Type': 'text/plain' },
+          body: ''
         }).catch(() => null);
+
+        // 2. Upload all chunks in parallel
+        await Promise.all(chunks.map((chunk, i) => {
+          const encodedChunk = encodeURIComponent(chunk);
+          return fetch(`${KV_BASE_URL}/UpdateValue/${KV_APP_KEY}/${syncCode}_${i}/${encodedChunk}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: ''
+          }).catch(() => null);
+        }));
       }
 
       hasPendingChanges = false;
@@ -1913,17 +1931,38 @@ ${text}
     try {
       let payload = null;
 
-      const res = await fetch(`${KV_BASE_URL}/GetValue/${KV_APP_KEY}/${syncCode}`, {
+      // 1. Fetch meta info
+      const metaRes = await fetch(`${KV_BASE_URL}/GetValue/${KV_APP_KEY}/${syncCode}_meta`, {
         method: 'GET',
         cache: 'no-cache'
       }).catch(() => null);
 
-      if (res && res.ok) {
-        const rawText = await res.text().catch(() => '');
-        payload = decodePayloadFromBase64(rawText);
+      if (metaRes && metaRes.ok) {
+        const rawMetaText = await metaRes.text().catch(() => '');
+        const metaClean = rawMetaText.replace(/^"+|"+$/g, '').trim();
+        const count = parseInt(metaClean, 10);
+
+        if (count > 0) {
+          // Parallel fetch all chunks
+          const chunkPromises = [];
+          for (let i = 0; i < count; i++) {
+            chunkPromises.push(
+              fetch(`${KV_BASE_URL}/GetValue/${KV_APP_KEY}/${syncCode}_${i}`, { cache: 'no-cache' })
+                .then(r => r.ok ? r.text() : '')
+                .then(t => t.replace(/^"+|"+$/g, '').trim())
+                .catch(() => '')
+            );
+          }
+          const fetchedChunks = await Promise.all(chunkPromises);
+          const fullBase64 = fetchedChunks.join('');
+          if (fullBase64) {
+            payload = decodePayloadFromBase64(fullBase64);
+          }
+        }
       }
 
-      if (!payload) {
+      // 2. Offline fallback ONLY if fetch failed completely
+      if (!payload && !metaRes) {
         const cacheRaw = localStorage.getItem(`tamaki_cloud_cache_${syncCode}`);
         if (cacheRaw) payload = JSON.parse(cacheRaw);
       }
@@ -1952,7 +1991,7 @@ ${text}
           }
         }
       } else if (!isSilent) {
-        showToast(`⚠️ コード [${syncCode}] のクラウドデータがまだありません。まずはデータのある端末で「今すぐクラウドに保存」を押してください`);
+        showToast(`⚠️ コード [${syncCode}] のクラウドデータがまだありません。まずはデータのある端末（${currentDeviceLabel === 'iPhone' ? 'Mac' : 'iPhone'}側）で「今すぐクラウドに保存」を押してください`);
       }
 
       updateSyncUIStatus('synced', `同期中 (${syncCode})`);
