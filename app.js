@@ -1602,8 +1602,29 @@ ${text}
   const mobileSyncDesc = document.getElementById('mobile-sync-desc');
   const githubPagesDefaultUrl = 'https://othaway-usamafty-rgb.github.io/tamaki-studio/';
 
-  // Cloud Sync Storage API Endpoint (Public KV Relay)
-  const CLOUD_SYNC_ENDPOINT = 'https://kvdb.io/W9e3pX2k6QyZ8mN1'; // Encrypted public bucket relay
+  // Cloud Sync Storage API Endpoint (CORS-enabled REST Relay)
+  const CLOUD_SYNC_ENDPOINT = 'https://api.restful-api.dev/objects';
+
+  async function getRemoteObjectId(syncCode) {
+    const cacheKey = `tamaki_remote_obj_id_${syncCode}`;
+    let objId = localStorage.getItem(cacheKey);
+    if (objId) return objId;
+
+    try {
+      const res = await fetch(`${CLOUD_SYNC_ENDPOINT}`).catch(() => null);
+      if (res && res.ok) {
+        const list = await res.json().catch(() => []);
+        if (Array.isArray(list)) {
+          const match = list.reverse().find(item => item.name === syncCode);
+          if (match && match.id) {
+            localStorage.setItem(cacheKey, match.id);
+            return match.id;
+          }
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
 
   function generateRandomSyncCode() {
     const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -1843,16 +1864,34 @@ ${text}
     if (!isSilent) updateSyncUIStatus('syncing', '保存中...');
 
     try {
-      // LocalStorage Cache
       localStorage.setItem(`tamaki_cloud_cache_${syncCode}`, JSON.stringify(payload));
       localStorage.setItem('tamaki_last_pushed_at', payload.updatedAt.toString());
 
-      // Async fetch call to cloud KV
-      await fetch(`${CLOUD_SYNC_ENDPOINT}/${syncCode}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).catch(() => null);
+      let objId = await getRemoteObjectId(syncCode);
+      let res = null;
+
+      if (objId) {
+        res = await fetch(`${CLOUD_SYNC_ENDPOINT}/${objId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: syncCode, data: payload })
+        }).catch(() => null);
+      }
+
+      if (!res || !res.ok) {
+        res = await fetch(CLOUD_SYNC_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: syncCode, data: payload })
+        }).catch(() => null);
+
+        if (res && res.ok) {
+          const created = await res.json().catch(() => null);
+          if (created && created.id) {
+            localStorage.setItem(`tamaki_remote_obj_id_${syncCode}`, created.id);
+          }
+        }
+      }
 
       hasPendingChanges = false;
 
@@ -1861,7 +1900,7 @@ ${text}
       if (syncCardTime) syncCardTime.textContent = `最終同期: ${dateStr} (${payload.updatedDevice})`;
 
       if (!isSilent) {
-        showToast('☁️ クラウドへ最新状態を保存しました');
+        showToast('☁️ クラウドへ最新状態を保存しました！');
       }
     } catch (e) {
       console.warn('Cloud push warning:', e);
@@ -1875,17 +1914,41 @@ ${text}
     if (!isSilent) updateSyncUIStatus('syncing', '取得中...');
 
     try {
-      const res = await fetch(`${CLOUD_SYNC_ENDPOINT}/${syncCode}`, {
-        method: 'GET',
-        cache: 'no-cache'
-      }).catch(() => null);
-
       let payload = null;
-      if (res && res.ok) {
-        payload = await res.json().catch(() => null);
+      let objId = await getRemoteObjectId(syncCode);
+
+      if (objId) {
+        const res = await fetch(`${CLOUD_SYNC_ENDPOINT}/${objId}`, {
+          method: 'GET',
+          cache: 'no-cache'
+        }).catch(() => null);
+
+        if (res && res.ok) {
+          const body = await res.json().catch(() => null);
+          if (body && body.data) payload = body.data;
+        }
       }
 
-      // Fallback to local cache if offline or KV empty
+      if (!payload) {
+        const res = await fetch(CLOUD_SYNC_ENDPOINT, {
+          method: 'GET',
+          cache: 'no-cache'
+        }).catch(() => null);
+
+        if (res && res.ok) {
+          const list = await res.json().catch(() => []);
+          if (Array.isArray(list)) {
+            const match = list.reverse().find(item => item.name === syncCode);
+            if (match && match.data) {
+              payload = match.data;
+              if (match.id) {
+                localStorage.setItem(`tamaki_remote_obj_id_${syncCode}`, match.id);
+              }
+            }
+          }
+        }
+      }
+
       if (!payload) {
         const cacheRaw = localStorage.getItem(`tamaki_cloud_cache_${syncCode}`);
         if (cacheRaw) payload = JSON.parse(cacheRaw);
@@ -1903,17 +1966,16 @@ ${text}
           if (isFromOtherDevice) {
             showToast(`☁️ ${payload.updatedDevice} からの続きを読み込みました！`);
           } else {
-            showToast(`☁️ クラウドデータを読み込みました (${payload.updatedDevice}の保存データ)。※別端末と連動するには両方で同じ同期コード [${syncCode}] を設定してください`);
+            showToast(`☁️ クラウドデータを読み込みました (${payload.updatedDevice}のデータ)。※MacとiPhone両方で同じ同期コード [${syncCode}] を設定してください`);
           }
         } else {
-          // Automatic periodic sync: apply if updated from other device & newer
           if (isFromOtherDevice && payload.updatedAt > lastPushed) {
             applyDraftPayload(payload, true);
             showToast(`☁️ ${payload.updatedDevice} からの最新執筆を自動反映しました`);
           }
         }
       } else if (!isSilent) {
-        showToast(`⚠️ コード [${syncCode}] に保存されたクラウドデータが見つかりません`);
+        showToast(`⚠️ コード [${syncCode}] のクラウドデータがまだありません。まずはデータのある端末で「今すぐクラウドに保存」を押してください`);
       }
 
       updateSyncUIStatus('synced', `同期中 (${syncCode})`);
