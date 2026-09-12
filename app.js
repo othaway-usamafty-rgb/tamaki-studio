@@ -1834,6 +1834,7 @@ ${text}
   // Push Data to Cloud Relay
   let syncDebounceTimer = null;
   let localSaveDebounceTimer = null;
+  let hasPendingChanges = false;
 
   async function pushToCloud(isSilent = false) {
     const payload = getCurrentDraftPayload();
@@ -1844,18 +1845,20 @@ ${text}
     try {
       // LocalStorage Cache
       localStorage.setItem(`tamaki_cloud_cache_${syncCode}`, JSON.stringify(payload));
-      localStorage.setItem('tamaki_last_pushed_at', payload.updatedAt);
+      localStorage.setItem('tamaki_last_pushed_at', payload.updatedAt.toString());
 
       // Async fetch call to cloud KV
-      const res = await fetch(`${CLOUD_SYNC_ENDPOINT}/${syncCode}`, {
+      await fetch(`${CLOUD_SYNC_ENDPOINT}/${syncCode}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       }).catch(() => null);
 
+      hasPendingChanges = false;
+
       const dateStr = new Date(payload.updatedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
       updateSyncUIStatus('synced', `同期中 (${syncCode})`);
-      if (syncCardTime) syncCardTime.textContent = `最終同期: ${dateStr} (この端末)`;
+      if (syncCardTime) syncCardTime.textContent = `最終同期: ${dateStr} (${payload.updatedDevice})`;
 
       if (!isSilent) {
         showToast('☁️ クラウドへ最新状態を保存しました');
@@ -1888,12 +1891,29 @@ ${text}
         if (cacheRaw) payload = JSON.parse(cacheRaw);
       }
 
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const currentDevice = isMobile ? 'iPhone' : 'Mac';
+
       if (payload && payload.updatedAt) {
         const lastPushed = parseInt(localStorage.getItem('tamaki_last_pushed_at') || '0', 10);
-        // Apply if external data is newer or explicitly requested
-        if (!isSilent || payload.updatedAt > lastPushed + 2000) {
-          applyDraftPayload(payload, isSilent);
+        const isFromOtherDevice = payload.updatedDevice !== currentDevice;
+
+        if (!isSilent) {
+          applyDraftPayload(payload, false);
+          if (isFromOtherDevice) {
+            showToast(`☁️ ${payload.updatedDevice} からの続きを読み込みました！`);
+          } else {
+            showToast(`☁️ クラウドデータを読み込みました (${payload.updatedDevice}の保存データ)。※別端末と連動するには両方で同じ同期コード [${syncCode}] を設定してください`);
+          }
+        } else {
+          // Automatic periodic sync: apply if updated from other device & newer
+          if (isFromOtherDevice && payload.updatedAt > lastPushed) {
+            applyDraftPayload(payload, true);
+            showToast(`☁️ ${payload.updatedDevice} からの最新執筆を自動反映しました`);
+          }
         }
+      } else if (!isSilent) {
+        showToast(`⚠️ コード [${syncCode}] に保存されたクラウドデータが見つかりません`);
       }
 
       updateSyncUIStatus('synced', `同期中 (${syncCode})`);
@@ -1905,6 +1925,8 @@ ${text}
 
   // Debounced auto-save on input
   function triggerAutoSync() {
+    hasPendingChanges = true;
+
     // 1. Immediate local storage auto-save (300ms)
     clearTimeout(localSaveDebounceTimer);
     localSaveDebounceTimer = setTimeout(() => {
@@ -1987,8 +2009,12 @@ ${text}
     autoSyncIntervalTimer = setInterval(async () => {
       if (document.visibilityState === 'hidden') return;
       saveLocalDraft();
-      await pushToCloud(true);
-      await pullFromCloud(true);
+
+      if (hasPendingChanges) {
+        await pushToCloud(true);
+      } else {
+        await pullFromCloud(true);
+      }
     }, ms);
   }
 
