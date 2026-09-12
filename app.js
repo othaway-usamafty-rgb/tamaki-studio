@@ -1678,10 +1678,22 @@ ${text}
     }
   }
 
+  function getDeviceId() {
+    let id = localStorage.getItem('tamaki_device_id');
+    if (!id) {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const prefix = isMobile ? 'dev_iPhone_' : 'dev_Mac_';
+      id = prefix + Math.random().toString(36).substring(2, 9);
+      localStorage.setItem('tamaki_device_id', id);
+    }
+    return id;
+  }
+
   function getCurrentDraftPayload() {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     return {
       syncCode: getSyncCode(),
+      deviceId: getDeviceId(),
       updatedAt: Date.now(),
       updatedDevice: isMobile ? 'iPhone' : 'Mac',
       mode: state.currentMode,
@@ -1847,6 +1859,8 @@ ${text}
       syncCardTime.textContent = `最終同期: ${dateStr} (${payload.updatedDevice || '別端末'})`;
     }
 
+    hasPendingChanges = false;
+
     if (!isSilent) {
       showToast(`☁️ ${payload.updatedDevice || '別端末'}からの続きを読み込みました！`);
     }
@@ -1955,23 +1969,26 @@ ${text}
       }
 
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      const currentDevice = isMobile ? 'iPhone' : 'Mac';
+      const currentDeviceLabel = isMobile ? 'iPhone' : 'Mac';
+      const myDeviceId = getDeviceId();
 
       if (payload && payload.updatedAt) {
         const lastPushed = parseInt(localStorage.getItem('tamaki_last_pushed_at') || '0', 10);
-        const isFromOtherDevice = payload.updatedDevice !== currentDevice;
+        const isFromOtherDevice = payload.deviceId ? (payload.deviceId !== myDeviceId) : (payload.updatedDevice !== currentDeviceLabel);
 
         if (!isSilent) {
           applyDraftPayload(payload, false);
+          hasPendingChanges = false;
           if (isFromOtherDevice) {
-            showToast(`☁️ ${payload.updatedDevice} からの続きを読み込みました！`);
+            showToast(`☁️ ${payload.updatedDevice || '別端末'} からの続きを読み込みました！`);
           } else {
-            showToast(`☁️ クラウドデータを読み込みました (${payload.updatedDevice}のデータ)。※MacとiPhone両方で同じ同期コード [${syncCode}] を設定してください`);
+            showToast(`⚠️ クラウドには現在 ${payload.updatedDevice || 'この端末'} 自身の保存データのみ入っています。Mac側で「今すぐクラウドに保存」を押したかご確認ください`);
           }
         } else {
           if (isFromOtherDevice && payload.updatedAt > lastPushed) {
             applyDraftPayload(payload, true);
-            showToast(`☁️ ${payload.updatedDevice} からの最新執筆を自動反映しました`);
+            hasPendingChanges = false;
+            showToast(`☁️ ${payload.updatedDevice || '別端末'} からの最新執筆を自動反映しました`);
           }
         }
       } else if (!isSilent) {
