@@ -1602,28 +1602,29 @@ ${text}
   const mobileSyncDesc = document.getElementById('mobile-sync-desc');
   const githubPagesDefaultUrl = 'https://othaway-usamafty-rgb.github.io/tamaki-studio/';
 
-  // Cloud Sync Storage API Endpoint (CORS-enabled REST Relay)
-  const CLOUD_SYNC_ENDPOINT = 'https://api.restful-api.dev/objects';
+  // Deterministic Key-Value Cloud Relay Endpoint
+  const KV_APP_KEY = 'tamakistudio2026';
+  const KV_BASE_URL = 'https://keyvalue.immanuel.co/api/KeyVal';
 
-  async function getRemoteObjectId(syncCode) {
-    const cacheKey = `tamaki_remote_obj_id_${syncCode}`;
-    let objId = localStorage.getItem(cacheKey);
-    if (objId) return objId;
-
+  function encodePayloadToBase64(payload) {
     try {
-      const res = await fetch(`${CLOUD_SYNC_ENDPOINT}`).catch(() => null);
-      if (res && res.ok) {
-        const list = await res.json().catch(() => []);
-        if (Array.isArray(list)) {
-          const match = list.reverse().find(item => item.name === syncCode);
-          if (match && match.id) {
-            localStorage.setItem(cacheKey, match.id);
-            return match.id;
-          }
-        }
-      }
-    } catch (e) {}
-    return null;
+      const jsonStr = JSON.stringify(payload);
+      return btoa(encodeURIComponent(jsonStr));
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function decodePayloadFromBase64(rawStr) {
+    try {
+      if (!rawStr) return null;
+      let clean = rawStr.replace(/^"+|"+$/g, '').trim();
+      const jsonStr = decodeURIComponent(atob(clean));
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      console.warn('Base64 decode warning:', e);
+      return null;
+    }
   }
 
   function generateRandomSyncCode() {
@@ -1881,30 +1882,12 @@ ${text}
       localStorage.setItem(`tamaki_cloud_cache_${syncCode}`, JSON.stringify(payload));
       localStorage.setItem('tamaki_last_pushed_at', payload.updatedAt.toString());
 
-      let objId = await getRemoteObjectId(syncCode);
-      let res = null;
-
-      if (objId) {
-        res = await fetch(`${CLOUD_SYNC_ENDPOINT}/${objId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: syncCode, data: payload })
-        }).catch(() => null);
-      }
-
-      if (!res || !res.ok) {
-        res = await fetch(CLOUD_SYNC_ENDPOINT, {
+      const encoded = encodePayloadToBase64(payload);
+      if (encoded) {
+        await fetch(`${KV_BASE_URL}/UpdateValue/${KV_APP_KEY}/${syncCode}/${encoded}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: syncCode, data: payload })
+          headers: { 'Content-Length': '0' }
         }).catch(() => null);
-
-        if (res && res.ok) {
-          const created = await res.json().catch(() => null);
-          if (created && created.id) {
-            localStorage.setItem(`tamaki_remote_obj_id_${syncCode}`, created.id);
-          }
-        }
       }
 
       hasPendingChanges = false;
@@ -1929,38 +1912,15 @@ ${text}
 
     try {
       let payload = null;
-      let objId = await getRemoteObjectId(syncCode);
 
-      if (objId) {
-        const res = await fetch(`${CLOUD_SYNC_ENDPOINT}/${objId}`, {
-          method: 'GET',
-          cache: 'no-cache'
-        }).catch(() => null);
+      const res = await fetch(`${KV_BASE_URL}/GetValue/${KV_APP_KEY}/${syncCode}`, {
+        method: 'GET',
+        cache: 'no-cache'
+      }).catch(() => null);
 
-        if (res && res.ok) {
-          const body = await res.json().catch(() => null);
-          if (body && body.data) payload = body.data;
-        }
-      }
-
-      if (!payload) {
-        const res = await fetch(CLOUD_SYNC_ENDPOINT, {
-          method: 'GET',
-          cache: 'no-cache'
-        }).catch(() => null);
-
-        if (res && res.ok) {
-          const list = await res.json().catch(() => []);
-          if (Array.isArray(list)) {
-            const match = list.reverse().find(item => item.name === syncCode);
-            if (match && match.data) {
-              payload = match.data;
-              if (match.id) {
-                localStorage.setItem(`tamaki_remote_obj_id_${syncCode}`, match.id);
-              }
-            }
-          }
-        }
+      if (res && res.ok) {
+        const rawText = await res.text().catch(() => '');
+        payload = decodePayloadFromBase64(rawText);
       }
 
       if (!payload) {
@@ -1982,7 +1942,7 @@ ${text}
           if (isFromOtherDevice) {
             showToast(`☁️ ${payload.updatedDevice || '別端末'} からの続きを読み込みました！`);
           } else {
-            showToast(`⚠️ クラウドには現在 ${payload.updatedDevice || 'この端末'} 自身の保存データのみ入っています。Mac側で「今すぐクラウドに保存」を押したかご確認ください`);
+            showToast(`⚠️ クラウドには現在 ${payload.updatedDevice || 'この端末'} 自身の保存データのみ入っています。相手端末（${currentDeviceLabel === 'iPhone' ? 'Mac' : 'iPhone'}）側で「今すぐクラウドに保存」を押したかご確認ください`);
           }
         } else {
           if (isFromOtherDevice && payload.updatedAt > lastPushed) {
