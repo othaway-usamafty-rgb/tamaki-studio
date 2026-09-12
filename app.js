@@ -1,5 +1,5 @@
 /**
- * Tamaki Studio v3.0.1 Ultra - Application Logic
+ * Tamaki Studio v3.0.2 Ultra - Application Logic
  * 鋭いメタ認知、思考の迷走プロセス、高解像度描写、オチのキレ、全入力自動保存・自動復元、ChatGPT推敲連携、無機質デトックスを完全搭載
  */
 
@@ -1582,6 +1582,11 @@ ${text}
   const btnPushCloudSync = document.getElementById('btn-push-cloud-sync');
   const btnCopyClipboardSync = document.getElementById('btn-copy-clipboard-sync');
   const btnRestoreClipboardSync = document.getElementById('btn-restore-clipboard-sync');
+  const syncIntervalSelect = document.getElementById('sync-interval-select');
+  const syncIntervalIndicator = document.getElementById('sync-interval-indicator');
+
+  let autoSyncIntervalTimer = null;
+  const SYNC_INTERVAL_STORAGE_KEY = 'tamaki_sync_interval_ms';
 
   // Sync Mode Tabs & Panels
   const btnSyncTabAuto = document.getElementById('btn-sync-tab-auto');
@@ -1947,6 +1952,60 @@ ${text}
       saveLocalDraft();
     }
   });
+
+  // Periodic Auto Save & Cloud Sync Engine
+  function setupAutoSyncInterval(intervalMs) {
+    if (autoSyncIntervalTimer) {
+      clearInterval(autoSyncIntervalTimer);
+      autoSyncIntervalTimer = null;
+    }
+
+    const ms = parseInt(intervalMs, 10);
+    localStorage.setItem(SYNC_INTERVAL_STORAGE_KEY, ms.toString());
+
+    if (syncIntervalSelect) {
+      syncIntervalSelect.value = ms.toString();
+    }
+
+    if (ms <= 0) {
+      if (syncIntervalIndicator) {
+        syncIntervalIndicator.textContent = '⚪ 自動周期保存: オフ';
+        syncIntervalIndicator.style.color = '#9ca3af';
+      }
+      return;
+    }
+
+    const sec = Math.round(ms / 1000);
+    const label = sec >= 60 ? `${Math.round(sec / 60)}分` : `${sec}秒`;
+    if (syncIntervalIndicator) {
+      syncIntervalIndicator.textContent = `🟢 ${label}周期で自動同期中`;
+      syncIntervalIndicator.style.color = '#10b981';
+    }
+
+    autoSyncIntervalTimer = setInterval(async () => {
+      if (document.visibilityState === 'hidden') return;
+      saveLocalDraft();
+      await pushToCloud(true);
+      await pullFromCloud(true);
+    }, ms);
+  }
+
+  if (syncIntervalSelect) {
+    syncIntervalSelect.addEventListener('change', (e) => {
+      const selectedMs = parseInt(e.target.value, 10);
+      setupAutoSyncInterval(selectedMs);
+      const sec = Math.round(selectedMs / 1000);
+      if (selectedMs > 0) {
+        showToast(`⏱️ 自動保存・同期の周期を ${sec >= 60 ? Math.round(sec / 60) + '分' : sec + '秒'} に設定しました`);
+      } else {
+        showToast('⏱️ 自動周期保存をオフにしました');
+      }
+    });
+  }
+
+  // Initial Auto Sync Interval Setup
+  const savedIntervalMs = localStorage.getItem(SYNC_INTERVAL_STORAGE_KEY) || '10000';
+  setupAutoSyncInterval(savedIntervalMs);
 
   const btnClearDraft = document.getElementById('btn-clear-draft');
   if (btnClearDraft) {
