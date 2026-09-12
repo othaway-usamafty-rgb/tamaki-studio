@@ -1596,7 +1596,7 @@ ${text}
   const syncPanelQr = document.getElementById('sync-panel-qr');
   const syncPanelClip = document.getElementById('sync-panel-clip');
 
-  let currentSyncType = 'wifi'; // 'wifi' | 'remote'
+  let currentSyncType = 'remote'; // 'remote' (GitHub Pages) | 'wifi'
   const btnSyncTypeWifi = document.getElementById('btn-sync-type-wifi');
   const btnSyncTypeRemote = document.getElementById('btn-sync-type-remote');
   const mobileSyncDesc = document.getElementById('mobile-sync-desc');
@@ -2069,29 +2069,23 @@ ${text}
 
     if (!fullUrl) {
       if (currentSyncType === 'remote') {
-        fullUrl = localStorage.getItem('tamaki_remote_url') || githubPagesDefaultUrl;
+        const isGitHubPages = window.location.hostname.includes('github.io');
+        const baseUrl = isGitHubPages ? window.location.origin + window.location.pathname : githubPagesDefaultUrl;
+        const urlObj = new URL(baseUrl);
+        urlObj.searchParams.set('sync', syncCode);
+        fullUrl = urlObj.toString();
       } else {
-        let host = window.location.hostname || '192.168.0.12';
-        let port = window.location.port || '8085';
-        if (host === 'localhost' || host === '127.0.0.1') {
+        let host = window.location.hostname;
+        if (!host || host === 'localhost' || host === '127.0.0.1') {
           host = '192.168.0.12';
         }
-        fullUrl = `${window.location.protocol}//${host}${port ? ':' + port : ''}/index.html`;
+        let port = window.location.port;
+        const protocol = window.location.protocol.startsWith('http') ? window.location.protocol : 'http:';
+        const baseUrl = `${protocol}//${host}${port ? ':' + port : ''}/index.html`;
+        const urlObj = new URL(baseUrl);
+        urlObj.searchParams.set('sync', syncCode);
+        fullUrl = urlObj.toString();
       }
-
-      // Append sync code to URL for 1-tap connection
-      const urlObj = new URL(fullUrl, window.location.href);
-      urlObj.searchParams.set('sync', syncCode);
-
-      // Encode brief draft snapshot if text exists
-      const currentText = outputEditor ? outputEditor.value.trim() : '';
-      if (currentText && currentText.length < 300) {
-        try {
-          urlObj.searchParams.set('draft', encodeURIComponent(currentText));
-        } catch (e) {}
-      }
-
-      fullUrl = urlObj.toString();
     }
 
     if (mobileAccessUrl) {
