@@ -1933,6 +1933,8 @@ ${text}
     if (el) {
       el.addEventListener('input', triggerAutoSync);
       el.addEventListener('change', triggerAutoSync);
+      el.addEventListener('blur', triggerAutoSync);
+      el.addEventListener('keyup', triggerAutoSync);
     }
   });
 
