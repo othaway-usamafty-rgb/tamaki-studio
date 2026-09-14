@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modeTabs = document.querySelectorAll('.mode-tab');
   const formTitle = document.getElementById('form-title');
   const presetSelector = document.getElementById('preset-selector');
-  const paletteChipsContainer = document.getElementById('palette-chips');
+  const phraseSelect = document.getElementById('phrase-select');
 
   // Fields Containers
   const fieldsDetox = document.getElementById('fields-detox');
@@ -250,6 +250,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const aiSmellDetails = document.getElementById('ai-smell-details');
   const btnFixSmell = document.getElementById('btn-fix-smell');
   const rewriteChips = document.querySelectorAll('.rewrite-chip');
+
+  // Proofreading Inspector (v4.0)
+  const proofreadInspector = document.getElementById('proofread-inspector');
+  const proofreadBadge = document.getElementById('proofread-badge');
+  const btnToggleProofread = document.getElementById('btn-toggle-proofread');
+  const proofreadToggleText = document.getElementById('proofread-toggle-text');
+  const proofreadToggleArrow = document.getElementById('proofread-toggle-arrow');
+  const proofreadBody = document.getElementById('proofread-body');
+  const proofreadList = document.getElementById('proofread-list');
+  const btnFixAllProofread = document.getElementById('btn-fix-all-proofread');
+
+  // Polish Diff Studio (v4.0)
+  const btnPolishTamaki = document.getElementById('btn-polish-tamaki');
+  const btnPolishProofread = document.getElementById('btn-polish-proofread');
+  const modalPolishDiff = document.getElementById('modal-polish-diff');
+  const btnClosePolishModal = document.getElementById('btn-close-polish-modal');
+  const polishModalTitle = document.getElementById('polish-modal-title');
+  const polishAdviceText = document.getElementById('polish-advice-text');
+  const tabViewDiff = document.getElementById('tab-view-diff');
+  const tabViewRaw = document.getElementById('tab-view-raw');
+  const diffViewContent = document.getElementById('diff-view-content');
+  const polishedRawText = document.getElementById('polished-raw-text');
+  const diffStatsPill = document.getElementById('diff-stats-pill');
+  const btnCopyPolished = document.getElementById('btn-copy-polished');
+  const btnApplyPolished = document.getElementById('btn-apply-polished');
 
   // Modals
   const btnGuide = document.getElementById('btn-guide');
@@ -326,31 +351,62 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
 
   function renderPalette() {
-    paletteChipsContainer.innerHTML = '';
+    if (!phraseSelect) return;
+    phraseSelect.innerHTML = '';
+
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = '🧩 語録・思考トリガーを選択して現在の欄に挿入...';
+    phraseSelect.appendChild(defaultOpt);
+
     const mode = state.currentMode;
-    let chips = [...phraseDictionary.common];
+    let modeSpecificPhrases = [];
+    let modeLabel = '現在のモード向け';
 
     if (mode === 'essay') {
-      chips = [...phraseDictionary.essay, ...phraseDictionary.common];
+      modeSpecificPhrases = phraseDictionary.essay || [];
+      modeLabel = '☕ エッセイ・日常・自虐フレーズ';
     } else if (mode === 'subculture') {
-      chips = [...phraseDictionary.subculture, ...phraseDictionary.colony_sf, ...phraseDictionary.common];
+      modeSpecificPhrases = [...(phraseDictionary.subculture || []), ...(phraseDictionary.colony_sf || [])];
+      modeLabel = '🤖 ガンダム・SF・原理主義フレーズ';
     } else if (mode === 'novel') {
-      chips = [...phraseDictionary.novel, ...phraseDictionary.common];
+      modeSpecificPhrases = phraseDictionary.novel || [];
+      modeLabel = '🎭 小説・ドラマ・心理描写フレーズ';
     }
 
-    // Deduplicate
-    const uniqueChips = Array.from(new Set(chips));
-
-    uniqueChips.forEach(phrase => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'palette-chip';
-      btn.textContent = phrase;
-      btn.title = 'クリックして現在の入力欄に挿入';
-      btn.addEventListener('click', () => {
-        insertPhraseToForm(phrase);
+    if (modeSpecificPhrases.length > 0) {
+      const optGroupMode = document.createElement('optgroup');
+      optGroupMode.label = modeLabel;
+      Array.from(new Set(modeSpecificPhrases)).forEach(phrase => {
+        const opt = document.createElement('option');
+        opt.value = phrase;
+        opt.textContent = phrase;
+        optGroupMode.appendChild(opt);
       });
-      paletteChipsContainer.appendChild(btn);
+      phraseSelect.appendChild(optGroupMode);
+    }
+
+    if (phraseDictionary.common && phraseDictionary.common.length > 0) {
+      const optGroupCommon = document.createElement('optgroup');
+      optGroupCommon.label = '🔥 汎用・思考トリガー・オチ';
+      Array.from(new Set(phraseDictionary.common)).forEach(phrase => {
+        const opt = document.createElement('option');
+        opt.value = phrase;
+        opt.textContent = phrase;
+        optGroupCommon.appendChild(opt);
+      });
+      phraseSelect.appendChild(optGroupCommon);
+    }
+  }
+
+  if (phraseSelect) {
+    phraseSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val) {
+        insertPhraseToForm(val);
+        e.target.value = '';
+        showToast(`🧩 「${val}」を挿入しました`);
+      }
     });
   }
 
@@ -1154,6 +1210,596 @@ ${antiAiInstruction}
     });
   }
 
+  // ==========================================
+  // 8.5 Fast Proofreading Engine (v4.0 Core)
+  // ==========================================
+  const proofreadRules = [
+    // 1. 慣用句・日本語の代表的誤用
+    {
+      id: 'idiom-mato',
+      pattern: /的を得(る|た|て|ない|ば|ず|よう)/g,
+      replacement: '的を射$1',
+      title: '的を得る → 的を射る',
+      desc: '慣用句の誤用。「的を射る（要点を正確に突く）」が本来の正しい表現です。',
+      category: 'error',
+      canAutoFix: true
+    },
+    {
+      id: 'idiom-shikii',
+      pattern: /敷居が高(い|く|ければ|かった)/g,
+      replacement: 'ハードルが高$1',
+      title: '敷居が高い → ハードルが高い',
+      desc: '「敷居が高い」は不義理があって行きにくい意。難易度が高い場合は「ハードルが高い」「気後れする」が適切です。',
+      category: 'warning',
+      canAutoFix: true
+    },
+    {
+      id: 'idiom-ashi',
+      pattern: /足をすくわれ(る|た|て|ず)/g,
+      replacement: '足元をすくわれ$1',
+      title: '足をすくわれる → 足元をすくわれる',
+      desc: '慣用句の誤用。すきをつかれて卑怯な手で倒される意味は「足元をすくわれる」です。',
+      category: 'error',
+      canAutoFix: true
+    },
+    {
+      id: 'idiom-omei',
+      pattern: /汚名(を)?挽回/g,
+      replacement: '汚名返上',
+      title: '汚名挽回 → 汚名返上',
+      desc: '「名誉挽回」または「汚名返上」の混同。「汚名」は取り戻すものではなく返上するものです。',
+      category: 'error',
+      canAutoFix: true
+    },
+    {
+      id: 'idiom-ichidanraku',
+      pattern: /ひと段落/g,
+      replacement: '一段落',
+      title: 'ひと段落 → 一段落（いちだんらく）',
+      desc: '「一段落」の本来の読みは「いちだんらく」です（表記は「一段落」が推奨されます）。',
+      category: 'warning',
+      canAutoFix: true
+    },
+    // 2. ら抜き言葉
+    {
+      id: 'grammar-ra-mire',
+      pattern: /見れ(る|た|ない|ば)/g,
+      replacement: '見られ$1',
+      title: 'ら抜き言葉: 見れる → 見られる',
+      desc: '可能動詞の「ら抜き言葉」です。「見られる」が規範的です。',
+      category: 'warning',
+      canAutoFix: true
+    },
+    {
+      id: 'grammar-ra-tabere',
+      pattern: /食べれ(る|た|ない|ば)/g,
+      replacement: '食べられ$1',
+      title: 'ら抜き言葉: 食べれる → 食べられる',
+      desc: '可能動詞の「ら抜き言葉」です。「食べられる」が規範的です。',
+      category: 'warning',
+      canAutoFix: true
+    },
+    {
+      id: 'grammar-ra-kore',
+      pattern: /来れ(る|た|ない|ば)/g,
+      replacement: '来られ$1',
+      title: 'ら抜き言葉: 来れる → 来られる',
+      desc: 'カ変動詞の可能形。「来られる（こられる）」が規範的です。',
+      category: 'warning',
+      canAutoFix: true
+    },
+    {
+      id: 'grammar-ra-okire',
+      pattern: /起きれ(る|た|ない|ば)/g,
+      replacement: '起きられ$1',
+      title: 'ら抜き言葉: 起きれる → 起きられる',
+      desc: '可能動詞の「ら抜き言葉」です。「起きられる」が規範的です。',
+      category: 'warning',
+      canAutoFix: true
+    },
+    {
+      id: 'grammar-ra-dere',
+      pattern: /出れ(る|た|ない|ば)/g,
+      replacement: '出られ$1',
+      title: 'ら抜き言葉: 出れる → 出られる',
+      desc: '可能動詞の「ら抜き言葉」です。「出られる」が規範的です。',
+      category: 'warning',
+      canAutoFix: true
+    },
+    // 3. 冗長・回りくどい表現
+    {
+      id: 'redundant-koto-ga-dekiru',
+      pattern: /すること(が|も)?可能(である|だ|です)/g,
+      replacement: 'できる',
+      title: '冗長表現: することが可能 → できる',
+      desc: '「〜できる」に簡潔化すると文章のリズムが引き締まります。',
+      category: 'style',
+      canAutoFix: true
+    },
+    // 4. コンプラ・身バレ語句
+    {
+      id: 'compliance-mark2',
+      pattern: /マークIIプレミオ|マークⅡプレミオ/g,
+      replacement: '90年代の国産セダン',
+      title: '特定固有名詞: マークIIプレミオ',
+      desc: '車種が特定されやすいため、安全な一般名称への置換を推奨します。',
+      category: 'warning',
+      canAutoFix: true
+    },
+    {
+      id: 'compliance-hotel-itami',
+      pattern: /HOTEL 伊丹|ホテル伊丹|HOTEL伊丹/gi,
+      replacement: '郊外のビジネスホテル',
+      title: '特定固有名詞: ホテル伊丹',
+      desc: '宿泊先が特定されるのを防ぐため、抽象表現への置換を推奨します。',
+      category: 'warning',
+      canAutoFix: true
+    },
+    {
+      id: 'compliance-hiace',
+      pattern: /ハイエース/g,
+      replacement: 'ワンボックス車',
+      title: '車種名: ハイエース',
+      desc: '必要に応じて一般表現に置換できます。',
+      category: 'style',
+      canAutoFix: true
+    },
+    {
+      id: 'compliance-celsior',
+      pattern: /セルシオ|シーマ/g,
+      replacement: '旧型高級車',
+      title: '車種名: セルシオ/シーマ',
+      desc: '必要に応じて一般表現に置換できます。',
+      category: 'style',
+      canAutoFix: true
+    }
+  ];
+
+  const variationPairs = [
+    { a: 'ウェブ', b: 'Web', label: 'ウェブ / Web' },
+    { a: 'ユーザー', b: 'ユーザ', label: 'ユーザー / ユーザ' },
+    { a: 'サーバー', b: 'サーバ', label: 'サーバー / サーバ' },
+    { a: 'コンピューター', b: 'コンピュータ', label: 'コンピューター / コンピュータ' },
+    { a: '行う', b: '行なう', label: '行う / 行なう' },
+    { a: '取り組む', b: '取組む', label: '取り組む / 取組む' },
+    { a: '受け取る', b: '受取る', label: '受け取る / 受取る' },
+    { a: '問い合わせ', b: '問合せ', label: '問い合わせ / 問合せ' }
+  ];
+
+  let currentProofreadIssues = [];
+
+  function runLocalProofread(text) {
+    if (!proofreadInspector || !proofreadList) return;
+    currentProofreadIssues = [];
+
+    if (!text || text.trim().length === 0) {
+      proofreadInspector.className = 'proofread-inspector';
+      proofreadBadge.textContent = '校正チェック: 待機中';
+      proofreadList.innerHTML = '<div style="color: var(--text-muted); font-size: 0.75rem; text-align: center; padding: 0.5rem;">文章が入力されると自動で校正チェックを開始します。</div>';
+      if (btnFixAllProofread) btnFixAllProofread.classList.add('hidden');
+      return;
+    }
+
+    // 1. ルールベースチェック
+    proofreadRules.forEach(rule => {
+      rule.pattern.lastIndex = 0;
+      let match;
+      while ((match = rule.pattern.exec(text)) !== null) {
+        currentProofreadIssues.push({
+          id: rule.id,
+          title: rule.title,
+          targetText: match[0],
+          replacement: rule.replacement ? match[0].replace(rule.pattern, rule.replacement) : null,
+          desc: rule.desc,
+          category: rule.category,
+          canAutoFix: rule.canAutoFix
+        });
+        if (!rule.pattern.global) break;
+      }
+    });
+
+    // 2. 表記揺れチェック（同一文書内での混在）
+    variationPairs.forEach(pair => {
+      const hasA = text.includes(pair.a);
+      const hasB = text.includes(pair.b);
+      if (hasA && hasB) {
+        currentProofreadIssues.push({
+          id: `var-${pair.a}-${pair.b}`,
+          title: `表記揺れ混在: 「${pair.a}」と「${pair.b}」`,
+          targetText: `${pair.a} / ${pair.b}`,
+          replacement: null,
+          desc: `同一記事内で「${pair.a}」と「${pair.b}」が両方使われています。統一を推奨します。`,
+          category: 'warning',
+          canAutoFix: false
+        });
+      }
+    });
+
+    // 3. 助詞「の」の3連続検知
+    const noRegex = /(?:[^\s、。\n]{1,10}の){3,}[^\s、。\n]{1,10}/g;
+    let noMatch;
+    while ((noMatch = noRegex.exec(text)) !== null) {
+      currentProofreadIssues.push({
+        id: 'grammar-no-chain',
+        title: '助詞「の」の連続',
+        targetText: noMatch[0],
+        replacement: null,
+        desc: `「${noMatch[0]}」のように助詞「の」が3回以上連続しています。リズム改善のため言い換えを検討してください。`,
+        category: 'style',
+        canAutoFix: false
+      });
+    }
+
+    // 4. 1文の長すぎ警告（110文字超）
+    const sentences = text.split(/([。！？\n]+)/);
+    for (let i = 0; i < sentences.length; i += 2) {
+      const s = sentences[i].trim();
+      if (s.length >= 110) {
+        currentProofreadIssues.push({
+          id: 'style-long-sentence',
+          title: `1文が長すぎます（${s.length}文字）`,
+          targetText: s.length > 25 ? s.slice(0, 25) + '...' : s,
+          replacement: null,
+          desc: `読者が息切れしやすいため、途中に読点を入れるか2文に分割することを推奨します。`,
+          category: 'warning',
+          canAutoFix: false
+        });
+      }
+    }
+
+    renderProofreadUI();
+  }
+
+  function renderProofreadUI() {
+    if (!proofreadInspector || !proofreadList) return;
+    proofreadList.innerHTML = '';
+
+    const count = currentProofreadIssues.length;
+    if (count === 0) {
+      proofreadInspector.className = 'proofread-inspector has-clean';
+      proofreadBadge.textContent = '校正チェック: 指摘なし (良好)';
+      proofreadList.innerHTML = '<div style="color: #4ade80; font-size: 0.75rem; text-align: center; padding: 0.4rem;">✨ 誤字脱字・表記揺れ・ら抜き言葉などの問題は見つかりませんでした。</div>';
+      if (btnFixAllProofread) btnFixAllProofread.classList.add('hidden');
+      return;
+    }
+
+    proofreadInspector.className = 'proofread-inspector has-warnings';
+    proofreadBadge.textContent = `校正指摘: ${count}件`;
+    if (btnFixAllProofread) {
+      const autoFixableCount = currentProofreadIssues.filter(i => i.canAutoFix && i.replacement).length;
+      if (autoFixableCount > 0) {
+        btnFixAllProofread.classList.remove('hidden');
+        btnFixAllProofread.textContent = `⚡ 一括修正可能な${autoFixableCount}件を反映`;
+      } else {
+        btnFixAllProofread.classList.add('hidden');
+      }
+    }
+
+    currentProofreadIssues.forEach(issue => {
+      const card = document.createElement('div');
+      card.className = `proofread-card category-${issue.category}`;
+
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'proofread-card-info';
+
+      const titleDiv = document.createElement('div');
+      titleDiv.innerHTML = `<span class="proofread-card-target">⚠️ ${issue.title}</span>`;
+      if (issue.replacement) {
+        titleDiv.innerHTML += ` <span class="proofread-card-suggest">➜ ${issue.replacement}</span>`;
+      }
+      infoDiv.appendChild(titleDiv);
+
+      const descDiv = document.createElement('div');
+      descDiv.className = 'proofread-card-desc';
+      descDiv.textContent = issue.desc;
+      infoDiv.appendChild(descDiv);
+
+      card.appendChild(infoDiv);
+
+      if (issue.canAutoFix && issue.replacement) {
+        const fixBtn = document.createElement('button');
+        fixBtn.type = 'button';
+        fixBtn.className = 'btn-proofread-fix';
+        fixBtn.textContent = '修正';
+        fixBtn.title = `「${issue.targetText}」を「${issue.replacement}」に置換`;
+        fixBtn.addEventListener('click', () => {
+          fixSingleProofreadIssue(issue);
+        });
+        card.appendChild(fixBtn);
+      }
+
+      proofreadList.appendChild(card);
+    });
+  }
+
+  function fixSingleProofreadIssue(issue) {
+    if (!outputEditor || !issue.targetText || !issue.replacement) return;
+    const text = outputEditor.value;
+    outputEditor.value = text.replace(issue.targetText, issue.replacement);
+    updateStats();
+    showToast(`✨ 「${issue.targetText}」を「${issue.replacement}」に修正しました`);
+  }
+
+  function fixAllProofreadIssues() {
+    if (!outputEditor) return;
+    let text = outputEditor.value;
+    let fixCount = 0;
+
+    proofreadRules.forEach(rule => {
+      if (rule.canAutoFix && rule.replacement) {
+        if (rule.pattern.test(text)) {
+          rule.pattern.lastIndex = 0;
+          text = text.replace(rule.pattern, rule.replacement);
+          fixCount++;
+        }
+      }
+    });
+
+    if (fixCount > 0) {
+      outputEditor.value = text;
+      updateStats();
+      showToast(`⚡ ${fixCount}箇所の表記・誤字を一括修正しました！`);
+    } else {
+      showToast('一括修正可能な項目はありませんでした');
+    }
+  }
+
+  if (btnToggleProofread && proofreadBody) {
+    btnToggleProofread.addEventListener('click', () => {
+      const isHidden = proofreadBody.classList.contains('hidden');
+      if (isHidden) {
+        proofreadBody.classList.remove('hidden');
+        btnToggleProofread.setAttribute('aria-expanded', 'true');
+        proofreadToggleText.textContent = '指摘一覧を閉じる';
+        proofreadToggleArrow.textContent = '▴';
+      } else {
+        proofreadBody.classList.add('hidden');
+        btnToggleProofread.setAttribute('aria-expanded', 'false');
+        proofreadToggleText.textContent = '指摘一覧を表示';
+        proofreadToggleArrow.textContent = '▾';
+      }
+    });
+  }
+
+  if (btnFixAllProofread) {
+    btnFixAllProofread.addEventListener('click', fixAllProofreadIssues);
+  }
+
+  // ==========================================
+  // 8.6 Gemini AI Polish Studio & Diff Viewer (v4.0 Core)
+  // ==========================================
+  let lastPolishedFullText = '';
+
+  async function runAiPolish(mode) {
+    const text = outputEditor.value.trim();
+    if (!text) {
+      showToast('まず文章を入力またはAI生成してください');
+      return;
+    }
+
+    if (!state.apiKey) {
+      showToast('⚡ まずGemini APIキーを設定してください（無料）');
+      if (modalApiSettings) modalApiSettings.classList.remove('hidden');
+      return;
+    }
+
+    const modeName = mode === 'proofread' ? 'AI精密校正' : 'たまき節 推敲ブラッシュアップ';
+    loadingText.textContent = `${modeName}を実行中...`;
+    loadingSub.textContent = mode === 'proofread'
+      ? '（文脈に沿った誤字脱字、同音異義語、主語述語のねじれを精査中）'
+      : '（筆者のメタ認知・脱線・リアリズム・オチを殺さず、贅肉を削ぎ落としてテンポを爆上げ中）';
+    loadingOverlay.classList.remove('hidden');
+
+    let systemInstruction = '';
+    if (mode === 'proofread') {
+      systemInstruction = `あなたは出版社のベテラン校閲者です。
+与えられた原稿の誤字脱字、文脈的誤用、ら抜き言葉、助詞の重なり、主語と述語のねじれを客観的・精密に校正してください。
+
+【厳格な出力形式】
+必ず以下の2つのセクションに分けて出力してください。挨拶やコードブロックは含めないでください：
+
+【推敲メモ】
+・修正した箇所と修正理由を箇条書きで簡潔に記述
+
+【推敲原稿】
+（校正後の本文全文）`;
+    } else {
+      systemInstruction = `あなたは筆者「たまきぱずず」の文体を深く愛し、noteでの反響を最大化する優秀な名編集者です。
+与えられた原稿を推敲・ブラッシュアップしてください。
+
+【推敲の最重要方針】
+1. 筆者の最大の魅力である「鋭いメタ認知（自虐・自問自答）」「思考の脱線（寄り道・思い迷うプロセス）」「生々しい五感解像度（具体的な数字、商品名、生活感）」「軽妙なオチのキレ」は絶対に消さず、むしろリズムよく際立たせること。
+2. 読者の引っ掛かりや冗長な言い回し、助詞の濁り、AI臭い論文調（〜と考えられます等）の贅肉を削ぎ落とし、note読者が一気にスクロールできる疾走感とテンポを生み出すこと。
+
+【厳格な出力形式】
+必ず以下の2つのセクションに分けて出力してください。挨拶やコードブロック(\`\`\`)は一切含めないでください：
+
+【推敲メモ】
+（編集者の視点から、どのような意図でどこをどう引き締めたかを3〜4行で具体的に解説）
+
+【推敲原稿】
+（推敲後の本文全文。noteにそのまま投稿できるMarkdown形式）`;
+    }
+
+    try {
+      const modelToUse = state.selectedModel || 'gemini-1.5-flash-latest';
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${state.apiKey}`;
+
+      const requestBody = {
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: `${systemInstruction}\n\n---\n【対象の原稿本文】\n${text}`
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: mode === 'proofread' ? 0.3 : 0.7,
+          maxOutputTokens: 8192
+        }
+      };
+
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!resp.ok) {
+        const errJson = await resp.json().catch(() => ({}));
+        throw new Error(errJson.error?.message || `APIエラー: HTTP ${resp.status}`);
+      }
+
+      const data = await resp.json();
+      const rawOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (!rawOutput) throw new Error('AIからの応答が空でした');
+
+      // パース処理
+      let advice = '推敲が完了しました。';
+      let polishedText = rawOutput;
+
+      if (rawOutput.includes('【推敲原稿】')) {
+        const parts = rawOutput.split('【推敲原稿】');
+        const memoPart = parts[0];
+        polishedText = parts[1].trim();
+
+        if (memoPart.includes('【推敲メモ】')) {
+          advice = memoPart.replace('【推敲メモ】', '').trim();
+        } else {
+          advice = memoPart.trim();
+        }
+      }
+
+      polishedText = polishedText.replace(/^```(?:markdown)?\n?/, '').replace(/\n?```$/, '').trim();
+      lastPolishedFullText = polishedText;
+
+      openPolishDiffModal(modeName, advice, text, polishedText);
+
+    } catch (err) {
+      console.error(err);
+      showToast(`推敲エラー: ${err.message}`);
+    } finally {
+      loadingOverlay.classList.add('hidden');
+    }
+  }
+
+  function generateDiffHtml(oldText, newText) {
+    const oldLines = oldText.split('\n');
+    const newLines = newText.split('\n');
+    const diffHtmlParts = [];
+    let delCount = 0;
+    let insCount = 0;
+
+    const maxLines = Math.max(oldLines.length, newLines.length);
+    for (let i = 0; i < maxLines; i++) {
+      const oLine = oldLines[i];
+      const nLine = newLines[i];
+
+      if (oLine === undefined) {
+        diffHtmlParts.push(`<div style="margin: 2px 0;"><span class="diff-ins">${escapeHtml(nLine)}</span></div>`);
+        insCount++;
+      } else if (nLine === undefined) {
+        diffHtmlParts.push(`<div style="margin: 2px 0;"><span class="diff-del">${escapeHtml(oLine)}</span></div>`);
+        delCount++;
+      } else if (oLine === nLine) {
+        diffHtmlParts.push(`<div style="margin: 2px 0;">${escapeHtml(oLine)}</div>`);
+      } else {
+        delCount++;
+        insCount++;
+        diffHtmlParts.push(`<div style="margin: 4px 0;"><span class="diff-del">${escapeHtml(oLine)}</span><br><span class="diff-ins">${escapeHtml(nLine)}</span></div>`);
+      }
+    }
+
+    return {
+      html: diffHtmlParts.join(''),
+      delCount,
+      insCount
+    };
+  }
+
+  function escapeHtml(str) {
+    return (str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function openPolishDiffModal(title, advice, originalText, polishedText) {
+    if (!modalPolishDiff) return;
+    polishModalTitle.textContent = title;
+    polishAdviceText.textContent = advice;
+    polishedRawText.value = polishedText;
+
+    const diffResult = generateDiffHtml(originalText, polishedText);
+    diffViewContent.innerHTML = diffResult.html;
+    diffStatsPill.textContent = `差分: 変更 ${diffResult.delCount}行 / 新規 ${diffResult.insCount}行`;
+
+    tabViewDiff.classList.add('active');
+    tabViewRaw.classList.remove('active');
+    diffViewContent.classList.remove('hidden');
+    polishedRawText.classList.add('hidden');
+
+    modalPolishDiff.classList.remove('hidden');
+  }
+
+  if (btnClosePolishModal) {
+    btnClosePolishModal.addEventListener('click', () => {
+      modalPolishDiff.classList.add('hidden');
+    });
+  }
+
+  if (tabViewDiff && tabViewRaw) {
+    tabViewDiff.addEventListener('click', () => {
+      tabViewDiff.classList.add('active');
+      tabViewRaw.classList.remove('active');
+      diffViewContent.classList.remove('hidden');
+      polishedRawText.classList.add('hidden');
+    });
+
+    tabViewRaw.addEventListener('click', () => {
+      tabViewRaw.classList.add('active');
+      tabViewDiff.classList.remove('active');
+      diffViewContent.classList.add('hidden');
+      polishedRawText.classList.remove('hidden');
+    });
+  }
+
+  if (btnCopyPolished) {
+    btnCopyPolished.addEventListener('click', () => {
+      if (!lastPolishedFullText) return;
+      navigator.clipboard.writeText(lastPolishedFullText).then(() => {
+        showToast('📋 推敲後テキストをコピーしました！');
+      });
+    });
+  }
+
+  if (btnApplyPolished) {
+    btnApplyPolished.addEventListener('click', () => {
+      if (!lastPolishedFullText || !outputEditor) return;
+      saveHistory(outputEditor.value);
+      outputEditor.value = lastPolishedFullText;
+      updateStats();
+      modalPolishDiff.classList.add('hidden');
+      showToast('✨ 推敲案をエディタに反映しました！（旧原稿は履歴に保存されました）');
+    });
+  }
+
+  if (btnPolishTamaki) {
+    btnPolishTamaki.addEventListener('click', () => {
+      runAiPolish('tamaki');
+    });
+  }
+
+  if (btnPolishProofread) {
+    btnPolishProofread.addEventListener('click', () => {
+      runAiPolish('proofread');
+    });
+  }
+
   // Debounced Editor updates
   let analyzeTimer = null;
   function updateStats() {
@@ -1167,6 +1813,7 @@ ${antiAiInstruction}
     clearTimeout(analyzeTimer);
     analyzeTimer = setTimeout(() => {
       analyzeText(text);
+      runLocalProofread(text);
     }, 250);
   }
 
@@ -1321,7 +1968,8 @@ ${antiAiInstruction}
 
 【推敲の方針】
 ・筆者の独特なメタ認知、生々しいリアリズム、思考の揺れ（脱線）、オチの軽妙さを殺さず活かすこと。
-・文章のリズムを整え、読者が一気に読めるテンポに仕上げること。
+・誤字脱字、表記揺れ、助詞の濁り・重なり、ら抜き言葉などの日本語チェック・校正を行うこと。
+・文章のリズムを整え、読者が一気に読める疾走感あるテンポに仕上げること。
 ・特定固有名詞の身バレ・コンプラリスクもチェックし、表現の抽象化や改善案があれば提示すること。
 
 ---
