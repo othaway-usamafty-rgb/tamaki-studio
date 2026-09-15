@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
-  <title>Tamaki Studio v4.0.0 Ultra | たまきぱずず専属 執筆工房</title>
-  <meta name="description" content="たまきぱずず氏特有の文体・思考様式（鋭いメタ認知・高い解像度・宇宙世紀原理主義・思考の迷走・生々しいリアリズム・軽妙なオチ）を完全再現する専用執筆支援スタジオ">
+  <title>Tamaki Studio v4.1.0 | たまきぱずず＆あずますくね専属 執筆工房</title>
+  <meta name="description" content="たまきぱずず氏特有の文体およびあずますくね風『日常の静寂と秘められた微熱』・大人の情愛・心理サスペンスを完全再現・支援する専用執筆工房">
   
   <!-- iPhone / PWA Mobile App Support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,8 +17,8 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Shippori+Mincho:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=4.1.0">
 </head>
 <body>
   <div class="app-container">
@@ -32,15 +32,23 @@
           </svg>
         </div>
         <div class="brand-text">
-          <h1>Tamaki Studio <span class="badge badge-pulse">v4.0.0 Ultra</span></h1>
-          <p class="subtitle">たまきぱずず専属 文書執筆・校正推敲・プロンプト生成工房</p>
+          <h1>Tamaki Studio <span class="badge badge-pulse">v4.1.0</span></h1>
+          <p class="subtitle">大人の情愛・心理サスペンス・エッセイ執筆＆校正推敲スタジオ</p>
         </div>
       </div>
       <div class="header-actions">
         <button id="btn-mobile-sync" class="btn-secondary btn-sm btn-highlight-mobile" title="Mac ↔ iPhone クロスデバイス連続作業同期">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19.5 20 17m0 0-2.5-2.5M20 17H10C7.2 17 5 14.8 5 12s2.2-5 5-5h10M6.5 4.5 4 7m0 0 2.5 2.5M4 7h10c2.8 0 5 2.2 5 5s-2.2 5-5 5H4"/></svg>
-          <span>☁️ デバイス同期</span>
-          <span class="sync-status-badge" id="header-sync-status"><span class="sync-dot"></span><span id="sync-status-text">未同期</span></span>
+          <span>☁️ 同期</span>
+          <span class="sync-status-badge synced" id="header-sync-status"><span class="sync-dot"></span><span id="sync-status-text">🟢 同期完了</span></span>
+        </button>
+        <button id="btn-privacy-dict" class="btn-secondary btn-sm" title="実名・車種・ホテル名等の身バレ置換辞書管理">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>🎭 身バレ辞書</span>
+        </button>
+        <button id="btn-kdp-export" class="btn-secondary btn-sm btn-highlight-kdp" title="Amazon Kindle(KDP)縦書き原稿・EPUBワンクリック出力">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+          <span>📖 Kindle縦書き</span>
         </button>
         <a href="./v2.2.1/index.html" target="_blank" id="btn-v221" class="btn-secondary btn-sm" title="旧バージョン v2.2.1 Pro を開く">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
@@ -52,7 +60,7 @@
         </button>
         <button id="btn-api-settings" class="btn-secondary btn-sm" title="API設定">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-          <span>API連携設定</span>
+          <span>API設定</span>
         </button>
         <button id="btn-history" class="btn-secondary btn-sm" title="生成履歴">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -148,24 +156,40 @@
             <div class="detox-card">
               <div class="detox-card-header">
                 <span class="detox-badge">🚽 無機質デトックスモード</span>
-                <span class="detox-counter" id="detox-char-count">0 文字</span>
+                <div class="detox-header-right" style="display: flex; align-items: center; gap: 8px;">
+                  <select id="detox-history-select" class="detox-history-dropdown" title="過去の落書き履歴から復元">
+                    <option value="">📜 過去の落書き履歴 (0件)...</option>
+                  </select>
+                  <span class="detox-counter" id="detox-char-count">0 文字</span>
+                </div>
               </div>
               <p class="detox-hint">
-                パラメータやAI診断を意識せず、ただ頭に浮かんだ恥ずかしい文章や感情をそのまま吐き出してください。自意識の目詰まりを掃除する無機質な空間です。
+                パラメータやAI診断を意識せず、ただ頭に浮かんだ生々しい感情や思考メモをそのまま吐き出してください。自動で履歴バックアップされ、消失しません。
               </p>
               <textarea id="detox-input" rows="7" class="detox-textarea" placeholder="ここに生の感情や思考をそのまま書き殴ってください（装飾・AIチェック・パラメータ設定は一切作動しません）..."></textarea>
-              <button type="button" id="btn-send-to-studio" class="btn-primary btn-block" style="margin-top: 12px;">
-                🚀 AIスタジオへ送る（本編執筆フォームへ展開）
-              </button>
+              <div class="detox-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+                <button type="button" id="btn-save-detox-memo" class="btn-secondary btn-sm" style="flex: 1;" title="現在の落書きを手動で履歴ログに保存">
+                  💾 履歴にスナップショット保存
+                </button>
+                <button type="button" id="btn-send-to-studio" class="btn-primary btn-sm" style="flex: 2;">
+                  🚀 AIスタジオへ送る（履歴保存＆本編執筆へ展開）
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Phrase & Thinking Trigger Dropdown (v4.0 Compact Select) -->
+          <!-- Dual Select Bar: Phrase & Sensory Palettes (v4.1) -->
           <div class="phrase-select-bar">
             <div class="phrase-select-inner">
               <span class="phrase-select-icon">🧩</span>
               <select id="phrase-select" class="phrase-select-dropdown" aria-label="たまきぱずず語録・思考トリガーを選択して挿入">
                 <option value="">語録・思考トリガーを選択して現在の欄に挿入...</option>
+              </select>
+            </div>
+            <div class="phrase-select-inner sensory-select-wrapper">
+              <span class="phrase-select-icon">🎨</span>
+              <select id="sensory-select" class="phrase-select-dropdown sensory-select-dropdown" aria-label="五感サンプリング・テクスチャパレットを選択して挿入">
+                <option value="">五感サンプリング（微熱・光と影・匂い・音）を選択...</option>
               </select>
             </div>
           </div>
@@ -226,30 +250,99 @@
             </div>
           </div>
 
-          <!-- Novel Fields -->
+          <!-- Novel Fields (あずますくね風『日常の静寂と秘められた微熱』・大人の情愛・心理サスペンス) -->
           <div class="mode-fields hidden" id="fields-novel">
+            <!-- Dual Monologue ('鍵'式 独白交代モード) Toggle -->
+            <div class="dual-mode-toggle-card">
+              <div class="dual-mode-header">
+                <div class="dual-mode-title">
+                  <span class="dual-icon">🗝️</span>
+                  <span>『鍵』式・独白交代（デュアル・モノローグ）モード</span>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="toggle-dual-monologue">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <p class="dual-mode-desc">
+                谷崎潤一郎『鍵』のように、「俺（男性視点）」と「保江（女性視点）」の密やかな企み・心理戦を並列で書き分け、交互に織り成す執筆モードです。
+              </p>
+            </div>
+
+            <!-- Dual Monologue Editor Workspace (Visible when toggle is ON) -->
+            <div id="dual-monologue-panel" class="dual-monologue-panel hidden">
+              <div class="dual-names-config">
+                <div class="dual-name-item">
+                  <label for="dual-name-male">視点A（男性）:</label>
+                  <input type="text" id="dual-name-male" value="俺" placeholder="俺 / 彼 / 夫">
+                </div>
+                <div class="dual-name-swap">⇄</div>
+                <div class="dual-name-item">
+                  <label for="dual-name-female">視点B（女性）:</label>
+                  <input type="text" id="dual-name-female" value="保江" placeholder="保江 / 彼女 / 妻">
+                </div>
+              </div>
+
+              <!-- View switch for mobile -->
+              <div class="dual-mobile-tabs">
+                <button type="button" class="dual-tab active" id="btn-dual-tab-male">👤 <span id="label-tab-male">俺の独白</span></button>
+                <button type="button" class="dual-tab" id="btn-dual-tab-female">👠 <span id="label-tab-female">保江の独白</span></button>
+              </div>
+
+              <div class="dual-columns-grid">
+                <!-- Column A: Male perspective -->
+                <div class="dual-column" id="col-dual-male">
+                  <div class="dual-col-header">
+                    <span class="col-badge male-badge" id="badge-col-male">👤 俺（男性視点）の独白・心理戦</span>
+                    <span class="dual-col-count" id="count-dual-male">0字</span>
+                  </div>
+                  <textarea id="dual-input-male" rows="6" class="dual-textarea" placeholder="・表向きの平然とした態度
+・内心の猜疑心、理性の揺らぎ、秘められた執着
+・彼女の所作や言葉の裏を冷徹に探る思考..."></textarea>
+                </div>
+
+                <!-- Column B: Female perspective -->
+                <div class="dual-column" id="col-dual-female">
+                  <div class="dual-col-header">
+                    <span class="col-badge female-badge" id="badge-col-female">👠 保江（女性視点）の独白・微熱</span>
+                    <span class="dual-col-count" id="count-dual-female">0字</span>
+                  </div>
+                  <textarea id="dual-input-female" rows="6" class="dual-textarea" placeholder="・見透かしているような微笑の裏側
+・相手の視線を意識した微細な身のこなし、香水の意図
+・日常の静寂の中で高まる秘められた微熱..."></textarea>
+                </div>
+              </div>
+
+              <div class="dual-actions-bar">
+                <button type="button" id="btn-merge-dual" class="btn-secondary btn-sm" style="flex: 1;">
+                  🔀 二人の独白を交互にマージしてエディタへ展開
+                </button>
+              </div>
+            </div>
+
+            <!-- Standard Novel Fields -->
             <div class="form-group">
-              <label for="novel-characters">登場人物（年齢・立場・性格） <span class="required">*</span></label>
-              <textarea id="novel-characters" rows="2" placeholder="主人公：40代半ば・管理職・家庭あり・理性と欲望の板挟み
-相手（女性）：30代前半・同僚・普段は凛としているが二人きりだと脆さを見せる"></textarea>
+              <label for="novel-characters">登場人物（年齢・立場・距離感・秘められた関係） <span class="required">*</span></label>
+              <textarea id="novel-characters" rows="2" placeholder="主人公：40代半ば・管理職・理性と欲望の板挟み
+相手（女性）：30代前半・保江・凛とした佇まいだが密やかな企みと脆さを秘める"></textarea>
             </div>
 
             <div class="form-group">
-              <label for="novel-setting">舞台・ロケーション・五感環境 <span class="required">*</span></label>
-              <input type="text" id="novel-setting" placeholder="例：雨の日の夕暮れ、残業後の暗い事務所／地下駐車場の車内">
-              <span class="hint">雨音、エアコンの送風音、タバコの匂い、シートの革の冷たさなど</span>
+              <label for="novel-setting">舞台・ロケーション・五感環境（光と影・音・匂い） <span class="required">*</span></label>
+              <input type="text" id="novel-setting" placeholder="例：雨の降る夕暮れのオフィス、エアコンの唸りと濡れたアスファルトの匂い">
+              <span class="hint">雨音、エアコンの送風音、タバコの匂い、グラスの結露、衣擦れの乾いた音など</span>
             </div>
 
             <div class="form-group">
-              <label for="novel-focus">ハイライト・心理の焦点（冷徹な観察眼×情欲） <span class="required">*</span></label>
-              <textarea id="novel-focus" rows="3" placeholder="・最初は躊躇し拒絶するが、徐々に理性が崩れていくグラデーション
-・行為中も心のどこかで「自分は何をやっているのか」と冷徹に観察するメタ認知
-・生々しい囁きと懇願、服を脱ぐ所作の解像度"></textarea>
+              <label for="novel-focus">心理サスペンスの焦点・官能の機微（日常の静寂と微熱） <span class="required">*</span></label>
+              <textarea id="novel-focus" rows="3" placeholder="・視線と沈黙による探り合い、言葉を選びながら進む心理戦
+・触れるか触れないかの距離感で生まれる微熱のテクスチャ
+・理性で自制しようとする自分を冷徹に眺めるメタ認知"></textarea>
             </div>
 
             <div class="form-group">
-              <label for="novel-ending">行為後の余韻・着地</label>
-              <input type="text" id="novel-ending" placeholder="例：静寂、雨音、戻らなければならない現実への意識とタバコの煙">
+              <label for="novel-ending">余韻・着地（静寂への回帰・密やかな余白）</label>
+              <input type="text" id="novel-ending" placeholder="例：戻らなければならない現実の気配、夜の静寂、残された香りと微熱">
             </div>
           </div>
 
@@ -379,10 +472,15 @@
             </button>
           </div>
           
-          <div class="output-stats" id="output-stats">
-            <span id="char-count">0 文字</span>
-            <span class="divider">/</span>
-            <span id="read-time">読了 約0分</span>
+          <div class="output-header-right" style="display: flex; align-items: center; gap: 10px;">
+            <button type="button" id="btn-toggle-outline" class="btn-secondary btn-xs btn-outline-toggle" title="見出し・章ごとのアウトライン目次を表示">
+              📑 目次 (<span id="outline-count-badge">0</span>)
+            </button>
+            <div class="output-stats" id="output-stats">
+              <span id="char-count">0 文字</span>
+              <span class="divider">/</span>
+              <span id="read-time">読了 約0分</span>
+            </div>
           </div>
         </div>
 
@@ -464,13 +562,13 @@
           <button id="btn-fix-smell" class="btn-text-sm">ワンクリック脱論文化</button>
         </div>
 
-        <!-- Fast Proofreading Inspector (v4.0 Core Feature) -->
+        <!-- Fast Proofreading Inspector (v4.0 & v4.1 Enhanced: 官能セーフティ統合) -->
         <div id="proofread-inspector" class="proofread-inspector">
           <div class="proofread-header" id="proofread-header">
             <div class="proofread-status">
               <span class="proofread-icon" id="proofread-icon">🔍</span>
               <span class="proofread-badge" id="proofread-badge">校正チェック: 指摘なし</span>
-              <span class="proofread-sub" id="proofread-sub">（誤字・表記揺れ・ら抜き・助詞重複・長文を自動監視）</span>
+              <span class="proofread-sub" id="proofread-sub">（誤字・官能セーフティ・表記揺れ・身バレ・ら抜き・助詞重複・長文を自動監視）</span>
             </div>
             <button type="button" id="btn-toggle-proofread" class="btn-text-sm" aria-expanded="false">
               <span id="proofread-toggle-text">指摘一覧を表示</span> <span id="proofread-toggle-arrow">▾</span>
@@ -481,7 +579,7 @@
               <!-- 動的に指摘カードが挿入される -->
             </div>
             <div class="proofread-actions-bar">
-              <button type="button" id="btn-fix-all-proofread" class="btn-secondary btn-xs">⚡ 一括修正可能な表記・誤字を反映</button>
+              <button type="button" id="btn-fix-all-proofread" class="btn-secondary btn-xs">⚡ 一括修正可能な表記・誤字・官能置換を反映</button>
             </div>
           </div>
         </div>
@@ -489,6 +587,9 @@
         <!-- Quick Rewrite / Polish Chips -->
         <div class="quick-rewrite-bar">
           <span class="chip-label">推敲スタジオ:</span>
+          <span id="selection-polish-badge" class="selection-polish-badge hidden" title="エディタで選択中のテキストのみを推敲します">
+            ✂️ 選択範囲（<span id="selected-char-count">0</span>字）推敲モード
+          </span>
           <button class="rewrite-chip chip-ai-primary" id="btn-polish-tamaki" title="たまき節の持ち味を活かして贅肉を削ぎ落とす本格推敲">🪄 たまき節で推敲</button>
           <button class="rewrite-chip chip-ai-secondary" id="btn-polish-proofread" title="文脈に沿った誤字脱字・構文の客観的AI校正">⚖️ AI精密校正</button>
           <span class="chip-divider">|</span>
@@ -501,12 +602,23 @@
           <button class="rewrite-chip" data-action="clean-ai">✨ 脱論文化</button>
         </div>
 
-        <!-- Editor Area -->
+        <!-- Editor Area with Outline Drawer -->
         <div class="editor-wrapper">
           <!-- Text Area for Editing -->
           <textarea id="output-editor" class="editor-textarea" placeholder="ここに生成された文章が表示されます。
 左側の「プロンプトを合成・コピー」でAIチャットに貼るか、「AIで筆者風に直接執筆する」を押してください。
 もちろん、このエリアで自由に直接加筆・推敲・編集も可能です。"></textarea>
+
+          <!-- Outline Drawer (v4.1 長文・1万字執筆対応) -->
+          <div id="outline-drawer" class="outline-drawer hidden">
+            <div class="outline-drawer-header">
+              <span class="outline-drawer-title">📑 目次・アウトライン</span>
+              <button type="button" id="btn-close-outline" class="btn-text-sm">&times;</button>
+            </div>
+            <div id="outline-items" class="outline-items">
+              <div class="outline-empty">見出し（# 第一章、■、第N話 等）を入力すると自動で目次が生成されます</div>
+            </div>
+          </div>
 
           <!-- Loading Overlay -->
           <div id="loading-overlay" class="loading-overlay hidden">
@@ -518,14 +630,21 @@
 
         <!-- Output Actions Footer -->
         <div class="output-footer">
-          <div class="footer-left">
+          <div class="footer-left" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             <button id="btn-copy-output" class="btn-primary btn-sm">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               <span>文章をコピー (note用)</span>
             </button>
+            <button id="btn-export-kdp-footer" class="btn-secondary btn-sm btn-highlight-kdp" title="縦書きプレビュー・Kindle縦書き・EPUB出力">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+              <span>📖 Kindle縦書き・EPUB</span>
+            </button>
+            <button id="btn-apply-privacy-dict-footer" class="btn-secondary btn-sm" title="登録された身バレ辞書で原稿全体を一括フィクション化">
+              <span>🎭 身バレ一括置換</span>
+            </button>
             <button id="btn-copy-chatgpt" class="btn-secondary btn-sm btn-chatgpt-copy" title="ChatGPTでの推敲用に指示プロンプト付きでクリップボードにコピー">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              <span>🟢 ChatGPT推敲用プロンプト付きコピー</span>
+              <span>🟢 ChatGPTプロンプト</span>
             </button>
             <button id="btn-download-md" class="btn-secondary btn-sm">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -607,37 +726,35 @@
     <div id="modal-guide" class="modal-backdrop hidden">
       <div class="modal-card modal-lg">
         <div class="modal-header">
-          <h3>📖 Tamaki Studio v4.0.0 Ultra 完全取扱説明書</h3>
+          <h3>📖 Tamaki Studio v4.1.0 完全取扱説明書</h3>
           <button class="modal-close" id="btn-close-guide-modal">&times;</button>
         </div>
         <div class="modal-body">
           <div class="guide-content" style="font-size: 0.875rem; line-height: 1.7; color: var(--text-primary);">
-            <h4 style="color: var(--text-accent); margin-bottom: 0.5rem;">📱 iPhone / スマホでの快適な使い方</h4>
+            <h4 style="color: var(--text-accent); margin-bottom: 0.5rem;">🔥 v4.1.0 創作コックピット新機能</h4>
+            <ul style="padding-left: 1.25rem; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; color: var(--text-secondary);">
+              <li><strong style="color: var(--text-primary);">🗝️ 『鍵』式・独白交代（デュアル・モノローグ）モード</strong>: 谷崎潤一郎『鍵』にインスパイアされた、男性視点（俺）と女性視点（保江）の心理・企みを2列並列で書き分け、交互に織り成す専用執筆機能。</li>
+              <li><strong style="color: var(--text-primary);">🛡️ 官能セーフティ・表現リスク事前検知＆文学的言い換え</strong>: 露骨・過激な単語をローカル検知し、「微熱を帯びた皮膚」「衣擦れの音」など五感・心理描写へワンタップで文学的に昇華。</li>
+              <li><strong style="color: var(--text-primary);">🎨 五感サンプリング（テクスチャ）パレット</strong>: 視覚（光と影）、聴覚（雨音・エアコンの唸り）、嗅覚（タバコ・柔軟剤）、触感（微熱・冷たさ）などの具体的ファクトを1行で即座に挿入。</li>
+              <li><strong style="color: var(--text-primary);">🎭 カスタム「身バレ置換辞書」管理</strong>: 実名、車種、ホテル名、地名などを登録し、原稿全体からワンクリックで完全フィクション化。</li>
+              <li><strong style="color: var(--text-primary);">📖 Kindle（KDP）縦書き原稿・EPUBワンクリック出力</strong>: 本格的な縦書きプレビュー、でんでんコンバーター用Markdown、完全ブラウザ完結のEPUB3ファイル書き出し。</li>
+              <li><strong style="color: var(--text-primary);">🚽 便所の落書き 自動履歴保存＆バックアップ</strong>: 本編へ展開しても元の落書きメモが履歴ログに完全保管され、いつでも未加工原稿へ復元可能。</li>
+              <li><strong style="color: var(--text-primary);">✂️ 部分推敲（選択範囲のみプロンプト適用）</strong>: 原稿の選択した特定の段落や章だけを対象に、たまき節推敲や校正を実行＆差分置換。</li>
+              <li><strong style="color: var(--text-primary);">📑 長文（1万字規模）執筆用アウトライン目次</strong>: 見出し（# 第一章、■、第N話等）を自動検出し、クリック一発で該当行へスムーズジャンプ。</li>
+              <li><strong style="color: var(--text-primary);">🟢 Tamaki Sync 競合防止＆3色ステータス可視化</strong>: タイムスタンプ比較厳密化と 🟢同期完了 / 🟡同期中 / 🔴オフライン保存 の常時可視化。</li>
+            </ul>
+
+            <h4 style="color: var(--text-accent); margin-top: 1rem; margin-bottom: 0.5rem;">📱 iPhone / スマホでの快適な使い方</h4>
             <p style="margin-bottom: 0.75rem; color: var(--text-secondary);">
               Safariの「共有」ボタン →「<strong>ホーム画面に追加</strong>」を行うと、iPhoneのホーム画面から全画面のネイティブアプリ感覚でいつでも一発起動できます。
             </p>
-
-            <h4 style="color: var(--text-accent); margin-top: 1rem; margin-bottom: 0.5rem;">🚀 v4.0.0 Ultra メジャー新機能</h4>
-            <ul style="padding-left: 1.25rem; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; color: var(--text-secondary);">
-              <li><strong style="color: var(--text-primary);">🔍 高速ローカル校正インスペクター (New in v4.0!)</strong>: API不要・0秒検知！ 誤字脱字、代表的誤用（的を得る等）、表記揺れ（Web/ウェブ等）、ら抜き言葉、助詞「の」3連続、1文の長すぎ（110文字超）をリアルタイムに自動検知＆ワンクリック修正。</li>
-              <li><strong style="color: var(--text-primary);">🪄 たまき節 推敲スタジオ＆Diff差分比較 (New in v4.0!)</strong>: 筆者の独特な「自虐・メタ認知」「思考の脱線」「生々しいリアリズム」「オチのキレ」を殺さずに贅肉を削ぎ落とす本格推敲。修正前後の差分（赤・緑）プレビューからワンタップでエディタへ反映可能！</li>
-              <li><strong style="color: var(--text-primary);">🧩 語録・思考トリガーの1行選択窓化 (New in v4.0!)</strong>: 画面を大きく圧迫していた語録ボタン群を高さ36pxの1行ドロップダウンに集約。執筆領域の広さと使いやすさを両立。</li>
-            </ul>
-
-            <h4 style="color: var(--text-accent); margin-top: 1rem; margin-bottom: 0.5rem;">✨ v3.0系からの継承機能</h4>
-            <ul style="padding-left: 1.25rem; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; color: var(--text-secondary);">
-              <li><strong style="color: var(--text-primary);">⏱️ 選択式・自動保存＆Mac↔iPhoneクラウド同期</strong>: 自動保存・同期周期を自由選択。MacとiPhone間での双方向リアルタイム同期。</li>
-              <li><strong style="color: var(--text-primary);">🟢 ChatGPT推敲バトンタッチ</strong>: 生成・調整した原稿を特製「皮肉屋でサブカル愛ある優秀な編集者」プロンプトで包んでワンタップコピー。</li>
-              <li><strong style="color: var(--text-primary);">🚽 便所の落書き（言葉の水路の掃除）</strong>: パラメータやAI評価を一切排除した無機質テキスト空間で感情を吐き出し、本編へ展開。</li>
-              <li><strong style="color: var(--text-primary);">🛡️ コンプラ・身バレ アラート</strong>: 特定固有名詞（車種・ホテル名等）を自動検知してフィクション化。</li>
-            </ul>
 
             <h4 style="color: var(--text-accent); margin-top: 1rem; margin-bottom: 0.5rem;">🚀 noteへの投稿・シームレス執筆フロー</h4>
             <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem; color: var(--text-secondary);">
               <li>「便所の落書き」モードで頭の中の感情やテーマを吐き出し、「AIスタジオへ送る」をタップ</li>
               <li>「AIで筆者風に直接執筆」を押してGeminiでベース原稿を生成</li>
-              <li>「🟢 ChatGPT推敲用コピー」を押してChatGPTに貼り付け、推敲・ブラッシュアップを実施</li>
-              <li>「文章をコピー (note用)」で最終原稿を取得し、note新規投稿へ貼り付け！</li>
+              <li>「五感パレット」や「推敲スタジオ」で情景の解像度と文体のキレを高める</li>
+              <li>「Kindle縦書き・EPUB」または「文章をコピー (note用)」で作品を出力！</li>
             </ol>
           </div>
         </div>
@@ -830,6 +947,117 @@
       </div>
     </div>
 
+    <!-- Modal: Privacy Dictionary Management (v4.1 New Feature) -->
+    <div id="modal-privacy-dict" class="modal-backdrop hidden">
+      <div class="modal-card modal-card-lg">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.3rem;">🎭</span>
+            <h3 style="margin: 0;">カスタム「身バレ置換辞書」管理</h3>
+          </div>
+          <button class="modal-close" id="btn-close-privacy-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc" style="margin-bottom: 1rem;">
+            実体験メモに出てくる実名・実在の車種・ホテル名・地名などを、フィクション用の仮名とセットで登録できます。執筆後にワンクリックで原稿全体を一括変換し、安全なフィクション原稿に仕上げられます。
+          </p>
+
+          <!-- Add Entry Form -->
+          <div class="privacy-dict-add-bar">
+            <input type="text" id="dict-input-real" placeholder="元の固有名詞（例: マークII）" class="dict-input">
+            <span class="dict-arrow">➔</span>
+            <input type="text" id="dict-input-fic" placeholder="置換後（例: クラシックセダン）" class="dict-input">
+            <button type="button" id="btn-add-dict-entry" class="btn-primary btn-sm">➕ 追加</button>
+          </div>
+
+          <!-- Dictionary Table -->
+          <div class="privacy-dict-table-wrapper">
+            <table class="privacy-dict-table">
+              <thead>
+                <tr>
+                  <th style="width: 40%;">元の実名・固有名詞</th>
+                  <th style="width: 40%;">置換後のフィクション名</th>
+                  <th style="width: 20%; text-align: center;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="privacy-dict-tbody">
+                <!-- Injected by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Tools bar -->
+          <div class="privacy-dict-tools">
+            <button type="button" id="btn-load-dict-presets" class="btn-secondary btn-xs">✨ 代表的プリセット（車・ホテル）を投入</button>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" id="btn-export-dict-json" class="btn-secondary btn-xs">📥 JSON書き出し</button>
+              <button type="button" id="btn-import-dict-json" class="btn-secondary btn-xs">📤 JSON読込</button>
+              <input type="file" id="dict-file-input" accept=".json" class="hidden-file-input">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+          <button type="button" id="btn-apply-privacy-all" class="btn-primary btn-sm">
+            ⚡ 現在のエディタ原稿全体を一括置換
+          </button>
+          <button type="button" id="btn-close-privacy-footer" class="btn-secondary btn-sm">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Kindle (KDP) Vertical & EPUB Export Studio (v4.1 New Feature) -->
+    <div id="modal-kdp-export" class="modal-backdrop hidden">
+      <div class="modal-card modal-card-xl">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.3rem;">📖</span>
+            <h3 style="margin: 0;">Kindle（KDP）縦書き原稿・EPUB出力スタジオ</h3>
+          </div>
+          <button class="modal-close" id="btn-close-kdp-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="kdp-config-bar">
+            <div class="kdp-meta-inputs">
+              <div class="kdp-field">
+                <label for="kdp-book-title">作品タイトル:</label>
+                <input type="text" id="kdp-book-title" value="日常の静寂と秘められた微熱">
+              </div>
+              <div class="kdp-field">
+                <label for="kdp-book-author">著者名:</label>
+                <input type="text" id="kdp-book-author" value="あずますくね / たまきぱずず">
+              </div>
+            </div>
+            <div class="kdp-export-actions">
+              <button type="button" id="btn-download-epub" class="btn-primary btn-sm" title="完全ブラウザ完結でEPUB3縦書き標準ファイルを生成・ダウンロード">
+                📦 EPUB3縦書き書き出し (.epub)
+              </button>
+              <button type="button" id="btn-download-kdp-md" class="btn-secondary btn-sm" title="でんでんコンバーター/KDP用縦書き整形Markdownを出力">
+                📄 でんでんMD保存 (.txt)
+              </button>
+              <button type="button" id="btn-copy-kdp-text" class="btn-secondary btn-sm">
+                📋 整形テキストをコピー
+              </button>
+            </div>
+          </div>
+
+          <div class="kdp-preview-container">
+            <div class="kdp-preview-header">
+              <span class="preview-badge">縦書きリアルタイム仕上がりプレビュー（Kindle / 文庫本スタイル）</span>
+              <span class="kdp-page-hint">※ ホイールまたはトラックパッド横スクロールで読めます</span>
+            </div>
+            <div class="kdp-preview-viewport">
+              <div id="kdp-vertical-viewer" class="kdp-vertical-viewer">
+                <!-- 縦書きプレビューコンテンツが注入される -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btn-close-kdp-footer" class="btn-secondary btn-sm">閉じる</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Mobile Bottom Navigation (Visible on <= 768px screens) -->
     <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
       <button class="mobile-nav-btn active" id="btn-mob-tab-input" data-target="input">
@@ -852,6 +1080,6 @@
   <div id="toast-message" class="toast hidden">コピーしました！</div>
 
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=4.0.0"></script>
+  <script src="app.js?v=4.1.0"></script>
 </body>
 </html>

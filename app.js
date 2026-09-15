@@ -183,16 +183,38 @@ document.addEventListener('DOMContentLoaded', () => {
   const formTitle = document.getElementById('form-title');
   const presetSelector = document.getElementById('preset-selector');
   const phraseSelect = document.getElementById('phrase-select');
+  const sensorySelect = document.getElementById('sensory-select');
 
   // Fields Containers
   const fieldsDetox = document.getElementById('fields-detox');
   const detoxInput = document.getElementById('detox-input');
   const detoxCharCount = document.getElementById('detox-char-count');
+  const detoxHistorySelect = document.getElementById('detox-history-select');
+  const btnSaveDetoxMemo = document.getElementById('btn-save-detox-memo');
   const btnSendToStudio = document.getElementById('btn-send-to-studio');
 
   const fieldsEssay = document.getElementById('fields-essay');
   const fieldsSubculture = document.getElementById('fields-subculture');
   const fieldsNovel = document.getElementById('fields-novel');
+
+  // Dual Monologue ('鍵'式 独白交代モード v4.1)
+  const toggleDualMonologue = document.getElementById('toggle-dual-monologue');
+  const dualMonologuePanel = document.getElementById('dual-monologue-panel');
+  const dualNameMale = document.getElementById('dual-name-male');
+  const dualNameFemale = document.getElementById('dual-name-female');
+  const btnDualTabMale = document.getElementById('btn-dual-tab-male');
+  const btnDualTabFemale = document.getElementById('btn-dual-tab-female');
+  const colDualMale = document.getElementById('col-dual-male');
+  const colDualFemale = document.getElementById('col-dual-female');
+  const dualInputMale = document.getElementById('dual-input-male');
+  const dualInputFemale = document.getElementById('dual-input-female');
+  const countDualMale = document.getElementById('count-dual-male');
+  const countDualFemale = document.getElementById('count-dual-female');
+  const badgeColMale = document.getElementById('badge-col-male');
+  const badgeColFemale = document.getElementById('badge-col-female');
+  const labelTabMale = document.getElementById('label-tab-male');
+  const labelTabFemale = document.getElementById('label-tab-female');
+  const btnMergeDual = document.getElementById('btn-merge-dual');
 
   // Sliders
   const sliderTone = document.getElementById('slider-tone');
@@ -276,6 +298,44 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCopyPolished = document.getElementById('btn-copy-polished');
   const btnApplyPolished = document.getElementById('btn-apply-polished');
 
+  // Outline Drawer & Selection Polish (v4.1)
+  const btnToggleOutline = document.getElementById('btn-toggle-outline');
+  const btnCloseOutline = document.getElementById('btn-close-outline');
+  const outlineDrawer = document.getElementById('outline-drawer');
+  const outlineItems = document.getElementById('outline-items');
+  const outlineCountBadge = document.getElementById('outline-count-badge');
+  const selectionPolishBadge = document.getElementById('selection-polish-badge');
+  const selectedCharCount = document.getElementById('selected-char-count');
+
+  // Privacy Dictionary (v4.1)
+  const btnPrivacyDict = document.getElementById('btn-privacy-dict');
+  const modalPrivacyDict = document.getElementById('modal-privacy-dict');
+  const btnClosePrivacyModal = document.getElementById('btn-close-privacy-modal');
+  const btnClosePrivacyFooter = document.getElementById('btn-close-privacy-footer');
+  const dictInputReal = document.getElementById('dict-input-real');
+  const dictInputFic = document.getElementById('dict-input-fic');
+  const btnAddDictEntry = document.getElementById('btn-add-dict-entry');
+  const privacyDictTbody = document.getElementById('privacy-dict-tbody');
+  const btnLoadDictPresets = document.getElementById('btn-load-dict-presets');
+  const btnExportDictJson = document.getElementById('btn-export-dict-json');
+  const btnImportDictJson = document.getElementById('btn-import-dict-json');
+  const dictFileInput = document.getElementById('dict-file-input');
+  const btnApplyPrivacyAll = document.getElementById('btn-apply-privacy-all');
+  const btnApplyPrivacyDictFooter = document.getElementById('btn-apply-privacy-dict-footer');
+
+  // Kindle (KDP) & EPUB Studio (v4.1)
+  const btnKdpExport = document.getElementById('btn-kdp-export');
+  const btnExportKdpFooter = document.getElementById('btn-export-kdp-footer');
+  const modalKdpExport = document.getElementById('modal-kdp-export');
+  const btnCloseKdpModal = document.getElementById('btn-close-kdp-modal');
+  const btnCloseKdpFooter = document.getElementById('btn-close-kdp-footer');
+  const kdpBookTitle = document.getElementById('kdp-book-title');
+  const kdpBookAuthor = document.getElementById('kdp-book-author');
+  const btnDownloadEpub = document.getElementById('btn-download-epub');
+  const btnDownloadKdpMd = document.getElementById('btn-download-kdp-md');
+  const btnCopyKdpText = document.getElementById('btn-copy-kdp-text');
+  const kdpVerticalViewer = document.getElementById('kdp-vertical-viewer');
+
   // Modals
   const btnGuide = document.getElementById('btn-guide');
   const modalGuide = document.getElementById('modal-guide');
@@ -337,18 +397,106 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.classList.add('mobile-view-input');
 
   // Track active input for phrase insertion
+  // Track active input for phrase/sensory insertion
   let lastActiveInput = null;
   document.querySelectorAll('input, textarea').forEach(el => {
     el.addEventListener('focus', () => {
-      if (el.id !== 'output-editor') {
-        lastActiveInput = el;
-      }
+      lastActiveInput = el;
     });
   });
 
   // ==========================================
   // 4. UI Interactions & Mode Switch
   // ==========================================
+
+  // Sensory Texture Palette Dictionary (v4.1 あずますくね風『日常の静寂と秘められた微熱』)
+  const sensoryPaletteDictionary = {
+    visual: {
+      label: '👁️ 視覚（光と影・視線・情景）',
+      items: [
+        'ブラインドの隙間から細く差し込む夕暮れの西日',
+        '街灯のオレンジ色に濡れて鈍く光るアスファルト',
+        '暗がりの中で白く浮かび上がるうなじの輪郭',
+        '結露したグラスの表面を滑り落ちる一筋の水滴',
+        '雨粒が窓ガラスを斜めに伝い、街のネオンを滲ませる',
+        '伏せられた長い睫毛が落とすわずかな影',
+        '車のヘッドライトが一瞬だけ二人の横顔を白く照らす',
+        '薄暗い事務所の片隅、PCモニターの青白い残光'
+      ]
+    },
+    audio: {
+      label: '👂 聴覚（静寂・環境音・微音）',
+      items: [
+        '静まり返った部屋に響くエアコンの低い唸り',
+        'フロントガラスを規則的に叩く鈍い雨音',
+        '耳元でかすかに乱れる浅い呼吸音',
+        '衣擦れの乾いた絹鳴りの音',
+        '氷がグラスの底でカランと小さく鳴る音',
+        '壁の時計が刻む無機質な秒針の音だけが響く',
+        '遠くの幹線道路を大型トラックが走り去る重低音',
+        'ため息ともつかない、微かな息の吐き出し'
+      ]
+    },
+    olfactory: {
+      label: '👃 嗅覚（匂い・煙・体香）',
+      items: [
+        '湿り気を帯びた煙草の葉とライターのオイルの匂い',
+        '微かに残る石鹸と、雨に濡れたコートの匂い',
+        '革シートの冷えた匂いと、密閉された車内の空気',
+        '熱を帯びた肌から立ちのぼる微かな甘い香り',
+        '雨上がりのアスファルトから立ち込める特有の土埃の匂い',
+        'すれ違いざまに掠めた微量のパフュームの残り香',
+        '冷えた夜風に混じる、誰かの柔軟剤の匂い'
+      ]
+    },
+    tactile: {
+      label: '✋ 触感（温度・質感・微熱）',
+      items: [
+        '触れ合う指先の微かな温度差と湿り気',
+        '肌に張り付くシルクブラウスのひやりとした感触',
+        '首筋にそっと触れた手のひらに伝わる静かな微熱',
+        'グラスの結露を拭った指先の冷たさ',
+        'ざらりとしたウール越しに感じる確かな体温',
+        '震えを悟られまいと指先をきつく握り締める感覚',
+        '襟元を緩めたときに首筋を抜ける冷たい夜気'
+      ]
+    },
+    somatic: {
+      label: '🫀 生理・心理（身体反応・沈黙）',
+      items: [
+        '言葉を探すあいだに喉の奥が微かに渇く感覚',
+        '静寂の中で自分の心拍が耳の奥で跳ねる',
+        '視線が絡み合った瞬間に背筋を走る微弱な悪寒',
+        '会話が途切れた部屋に落ちる、息の詰まるような沈黙',
+        '冷静を装う呼吸のテンポがわずかに狂う',
+        '心のどこかで「自分は何をしているのか」と冷徹に眺める自意識',
+        '引き返せなくなる境界線を越えてしまった確信'
+      ]
+    }
+  };
+
+  function renderSensoryPalette() {
+    if (!sensorySelect) return;
+    sensorySelect.innerHTML = '';
+
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = '🎨 五感サンプリング（微熱・光と影・匂い・音）を選択...';
+    sensorySelect.appendChild(defaultOpt);
+
+    Object.keys(sensoryPaletteDictionary).forEach(key => {
+      const group = sensoryPaletteDictionary[key];
+      const optGroup = document.createElement('optgroup');
+      optGroup.label = group.label;
+      group.items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        optGroup.appendChild(opt);
+      });
+      sensorySelect.appendChild(optGroup);
+    });
+  }
 
   function renderPalette() {
     if (!phraseSelect) return;
@@ -397,6 +545,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       phraseSelect.appendChild(optGroupCommon);
     }
+
+    renderSensoryPalette();
   }
 
   if (phraseSelect) {
@@ -405,33 +555,57 @@ document.addEventListener('DOMContentLoaded', () => {
       if (val) {
         insertPhraseToForm(val);
         e.target.value = '';
-        showToast(`🧩 「${val}」を挿入しました`);
+      }
+    });
+  }
+
+  if (sensorySelect) {
+    sensorySelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val) {
+        insertPhraseToForm(val);
+        e.target.value = '';
       }
     });
   }
 
   function insertPhraseToForm(phrase) {
     let target = lastActiveInput;
-    if (!target || !document.body.contains(target) || target.closest('.mode-fields.hidden')) {
-      // Default to appropriate field in current mode
-      if (state.currentMode === 'essay') {
-        target = document.getElementById('essay-experience');
+    if (!target || !document.body.contains(target) || (target !== outputEditor && target.closest('.mode-fields.hidden'))) {
+      if (state.currentMode === 'novel') {
+        if (toggleDualMonologue && toggleDualMonologue.checked && dualInputMale && !dualInputMale.closest('.hidden')) {
+          target = dualInputMale;
+        } else {
+          target = document.getElementById('novel-focus') || outputEditor;
+        }
+      } else if (state.currentMode === 'essay') {
+        target = document.getElementById('essay-experience') || outputEditor;
       } else if (state.currentMode === 'subculture') {
-        target = document.getElementById('subculture-doubts');
-      } else if (state.currentMode === 'novel') {
-        target = document.getElementById('novel-focus');
+        target = document.getElementById('subculture-doubts') || outputEditor;
+      } else {
+        target = outputEditor;
       }
     }
 
     if (target) {
       target.focus();
-      const start = target.selectionStart || target.value.length;
-      const end = target.selectionEnd || target.value.length;
+      const start = target.selectionStart !== undefined ? target.selectionStart : target.value.length;
+      const end = target.selectionEnd !== undefined ? target.selectionEnd : target.value.length;
       const text = target.value;
       const prefix = (start > 0 && text[start - 1] !== '\n' && text[start - 1] !== ' ') ? ' ' : '';
       target.value = text.substring(0, start) + prefix + phrase + text.substring(end);
-      target.selectionStart = target.selectionEnd = start + prefix.length + phrase.length;
-      showToast(`「${phrase.substring(0, 12)}...」を挿入しました`);
+      const newPos = start + prefix.length + phrase.length;
+      if (target.setSelectionRange) {
+        target.setSelectionRange(newPos, newPos);
+      }
+      showToast(`「${phrase.substring(0, 16)}...」を挿入しました`);
+      
+      // If inserted into outputEditor, recalculate sync and proofread
+      if (target === outputEditor) {
+        updateOutputStats();
+        runDebouncedProofread();
+        updateOutline();
+      }
     }
   }
 
@@ -459,7 +633,91 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPalette();
   }
 
-  // Detox Input Events (便所の落書き・文字数カウント)
+  // ==========================================
+  // Detox Mode History & Auto Backup (v4.1)
+  // ==========================================
+  const DETOX_HISTORY_KEY = 'tamaki_detox_history';
+
+  function getDetoxHistory() {
+    try {
+      const raw = localStorage.getItem(DETOX_HISTORY_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveDetoxToHistory(text) {
+    if (!text || !text.trim()) return;
+    try {
+      const list = getDetoxHistory();
+      const entry = {
+        id: 'detox_' + Date.now(),
+        timestamp: Date.now(),
+        preview: text.trim().substring(0, 30).replace(/\n/g, ' '),
+        content: text.trim()
+      };
+      // Keep up to 30 history items
+      const updated = [entry, ...list.filter(item => item.content !== text.trim())].slice(0, 30);
+      localStorage.setItem(DETOX_HISTORY_KEY, JSON.stringify(updated));
+      renderDetoxHistoryOptions();
+    } catch (e) {
+      console.warn('Failed to save detox history:', e);
+    }
+  }
+
+  function renderDetoxHistoryOptions() {
+    if (!detoxHistorySelect) return;
+    detoxHistorySelect.innerHTML = '';
+    const list = getDetoxHistory();
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = `📜 過去の落書き履歴 (${list.length}件)...`;
+    detoxHistorySelect.appendChild(defaultOpt);
+
+    list.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.id;
+      const dateStr = new Date(item.timestamp).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      opt.textContent = `${dateStr}: ${item.preview}...`;
+      detoxHistorySelect.appendChild(opt);
+    });
+  }
+
+  if (detoxHistorySelect) {
+    detoxHistorySelect.addEventListener('change', (e) => {
+      const id = e.target.value;
+      if (!id) return;
+      const list = getDetoxHistory();
+      const found = list.find(item => item.id === id);
+      if (found && detoxInput) {
+        if (detoxInput.value && detoxInput.value !== found.content) {
+          if (!confirm('現在の入力内容を履歴の落書きで置き換えますか？')) {
+            e.target.value = '';
+            return;
+          }
+        }
+        detoxInput.value = found.content;
+        detoxCharCount.textContent = `${found.content.length} 文字`;
+        showToast('📜 過去の落書きメモを復元しました');
+      }
+      e.target.value = '';
+    });
+  }
+
+  if (btnSaveDetoxMemo) {
+    btnSaveDetoxMemo.addEventListener('click', () => {
+      const text = detoxInput ? detoxInput.value : '';
+      if (!text.trim()) {
+        showToast('保存する落書きテキストがありません');
+        return;
+      }
+      saveDetoxToHistory(text);
+      showToast('💾 落書きスナップショットを履歴に保存しました');
+    });
+  }
+
+  // Detox Input Events
   if (detoxInput && detoxCharCount) {
     detoxInput.addEventListener('input', () => {
       const len = detoxInput.value.length;
@@ -476,6 +734,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      // Always backup to history first
+      saveDetoxToHistory(text);
+
       // Transfer text to essay experience field
       const expField = document.getElementById('essay-experience');
       if (expField) {
@@ -491,7 +752,101 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Switch to Essay mode
       setMode('essay');
-      showToast('🚀 無機質デトックス文をAIスタジオ執筆フォームへ展開しました！');
+      showToast('🚀 落書きを履歴保存し、本編執筆フォームへ展開しました！');
+    });
+  }
+
+  // ==========================================
+  // Dual Monologue Mode ('鍵'式 独白交代モード v4.1)
+  // ==========================================
+  if (toggleDualMonologue && dualMonologuePanel) {
+    toggleDualMonologue.addEventListener('change', () => {
+      dualMonologuePanel.classList.toggle('hidden', !toggleDualMonologue.checked);
+      if (toggleDualMonologue.checked) {
+        showToast('🗝️ 『鍵』式・独白交代モードを有効化しました');
+      }
+    });
+  }
+
+  function updateDualNames() {
+    const maleName = (dualNameMale && dualNameMale.value.trim()) || '俺';
+    const femaleName = (dualNameFemale && dualNameFemale.value.trim()) || '保江';
+
+    if (badgeColMale) badgeColMale.textContent = `👤 ${maleName}（男性視点）の独白・心理戦`;
+    if (badgeColFemale) badgeColFemale.textContent = `👠 ${femaleName}（女性視点）の独白・微熱`;
+    if (labelTabMale) labelTabMale.textContent = `${maleName}の独白`;
+    if (labelTabFemale) labelTabFemale.textContent = `${femaleName}の独白`;
+  }
+
+  if (dualNameMale) dualNameMale.addEventListener('input', updateDualNames);
+  if (dualNameFemale) dualNameFemale.addEventListener('input', updateDualNames);
+
+  // Dual Monologue character count
+  if (dualInputMale && countDualMale) {
+    dualInputMale.addEventListener('input', () => {
+      countDualMale.textContent = `${dualInputMale.value.length}字`;
+    });
+  }
+  if (dualInputFemale && countDualFemale) {
+    dualInputFemale.addEventListener('input', () => {
+      countDualFemale.textContent = `${dualInputFemale.value.length}字`;
+    });
+  }
+
+  // Mobile Tabs for Dual Monologue
+  if (btnDualTabMale && btnDualTabFemale && colDualMale && colDualFemale) {
+    btnDualTabMale.addEventListener('click', () => {
+      btnDualTabMale.classList.add('active');
+      btnDualTabFemale.classList.remove('active');
+      colDualMale.classList.remove('mobile-hidden');
+      colDualFemale.classList.add('mobile-hidden');
+    });
+
+    btnDualTabFemale.addEventListener('click', () => {
+      btnDualTabFemale.classList.add('active');
+      btnDualTabMale.classList.remove('active');
+      colDualFemale.classList.remove('mobile-hidden');
+      colDualMale.classList.add('mobile-hidden');
+    });
+  }
+
+  // Merge Dual Monologues Interleaved into Editor
+  if (btnMergeDual) {
+    btnMergeDual.addEventListener('click', () => {
+      const maleName = (dualNameMale && dualNameMale.value.trim()) || '俺';
+      const femaleName = (dualNameFemale && dualNameFemale.value.trim()) || '保江';
+      const maleText = dualInputMale ? dualInputMale.value.trim() : '';
+      const femaleText = dualInputFemale ? dualInputFemale.value.trim() : '';
+
+      if (!maleText && !femaleText) {
+        showToast('二人の独白が空です。文章を入力してください。');
+        return;
+      }
+
+      const maleParas = maleText ? maleText.split(/\n\n+/).filter(p => p.trim()) : [];
+      const femaleParas = femaleText ? femaleText.split(/\n\n+/).filter(p => p.trim()) : [];
+
+      const mergedSections = [];
+      const maxLen = Math.max(maleParas.length, femaleParas.length);
+
+      for (let i = 0; i < maxLen; i++) {
+        if (i < maleParas.length) {
+          mergedSections.push(`## 【${maleName}の独白】\n${maleParas[i]}`);
+        }
+        if (i < femaleParas.length) {
+          mergedSections.push(`## 【${femaleName}の独白】\n${femaleParas[i]}`);
+        }
+      }
+
+      const finalMerged = mergedSections.join('\n\n');
+      if (outputEditor) {
+        outputEditor.value = finalMerged;
+        updateOutputStats();
+        runDebouncedProofread();
+        updateOutline();
+        setMobileView('editor');
+        showToast(`🔀 ${maleName}と${femaleName}の独白を交互にマージして展開しました！`);
+      }
     });
   }
 
@@ -877,8 +1232,47 @@ ${ending ? `- **結びのトーン**: ${ending}` : ''}
       const setting = document.getElementById('novel-setting').value.trim() || '雨の夜の密室';
       const focus = document.getElementById('novel-focus').value.trim() || '（心理の機微と情欲）';
       const ending = document.getElementById('novel-ending').value.trim();
+      const isDual = toggleDualMonologue && toggleDualMonologue.checked;
+      const maleName = (dualNameMale && dualNameMale.value.trim()) || '俺';
+      const femaleName = (dualNameFemale && dualNameFemale.value.trim()) || '保江';
+      const maleMemo = dualInputMale ? dualInputMale.value.trim() : '';
+      const femaleMemo = dualInputFemale ? dualInputFemale.value.trim() : '';
 
-      fewShotSample = `
+      if (isDual) {
+        fewShotSample = `
+### 【筆者の文体お手本（『鍵』式デュアル・モノローグ Few-Shot）】
+## 【${maleName}の独白】
+「部屋に入った瞬間、エアコンの低い唸りだけが耳についた。
+窓の外には夕暮れの雨。濡れたブラインドの隙間から差し込む街灯の光が、保江のうなじの白い起伏を冷たく照らしている。
+『お茶でも淹れましょうか』と振り向いた彼女の瞳には、一切の躊躇がなかった。
+平静を装いながら、私は心のどこかで彼女の所作の裏を探ろうとしている。明日の朝には何事もなかったかのように日常へ戻らなければならない――その冷徹な自制心が、むしろ目の前の彼女への微熱を静かに煽っていた。」
+
+## 【${femaleName}の独白】
+「背後で彼がコートを脱ぎ、微かに息を整える気配がした。
+振り向きざまに見せた私の微笑を、彼がどう受け止めたかなど先刻お見通しだった。
+『お茶でも』という言葉が、この部屋における明確な合図であることくらい、お互いに百も承知のはずなのだ。
+冷えた指先を湯飲みに添えながら、彼の視線が私の首筋から指先へと滑り落ちていくのを感じる。
+日常の静寂の中で、二人の呼吸が重なっていくこの瞬間だけが、私にとっての確かな現実だった。」
+`;
+
+        modeSection = `
+## 執筆ジャンル: 『鍵』式・独白交代（デュアル・モノローグ）小説（大人の情愛・心理サスペンス）
+谷崎潤一郎『鍵』のように、同一の出来事や逢瀬をめぐる【${maleName}（男性視点）】と【${femaleName}（女性視点）】の密やかな独白・企み・心理戦を交互に書き分ける構成で執筆してください。
+
+- **登場人物**: ${characters}
+- **舞台・五感環境**: ${setting}
+- **【${maleName}（男性視点）の独白・本音メモ】**:
+${maleMemo || '表向きの平然とした態度と、内心の猜疑心・微熱・理性の葛藤'}
+- **【${femaleName}（女性視点）の独白・微熱メモ】**:
+${femaleMemo || '見透かしたような微笑の裏にある密やかな企み・計算・静かな興奮'}
+- **心理焦点・大人の機微**: ${focus}
+${ending ? `- **結び・余韻**: ${ending}` : ''}
+
+【構成の厳格指定】
+章ごとに「## 【${maleName}の独白】」「## 【${femaleName}の独白】」の見出しを交互に置き、互いの視点から見た同じ仕草や言葉の裏にある「二人のすれ違い」と「密やかな微熱」を鮮やかに浮き彫りにしてください。
+`;
+      } else {
+        fewShotSample = `
 ### 【筆者の文体お手本（Few-Shot Example）】
 「車内を満たす静寂と、エアコンの微かな送風音。
 助手席で目を伏せる彼女の横顔を、どこか冷徹に観察している自分がいる。
@@ -887,7 +1281,7 @@ ${ending ? `- **結びのトーン**: ${ending}` : ''}
 行為の後の静寂。遠くのサイレンの音。ルームミラー越しにネクタイを結び直しながら、戻らなければならない日常の残酷さに息を吐く。」
 `;
 
-      modeSection = `
+        modeSection = `
 ## 執筆ジャンル: 小説・官能描写（五感解像度・冷徹なメタ認知・大人の機微）
 - **登場人物**: 
 ${characters}
@@ -896,6 +1290,7 @@ ${characters}
 ${focus}
 ${ending ? `- **結び・余韻**: ${ending}` : ''}
 `;
+      }
     }
 
     // Reference Document Injection (if loaded)
@@ -1352,6 +1747,52 @@ ${antiAiInstruction}
       desc: '必要に応じて一般表現に置換できます。',
       category: 'style',
       canAutoFix: true
+    },
+    // 5. 官能セーフティ・表現リスク事前検知（文学的五感・心理描写への言い換え提案 v4.1）
+    {
+      id: 'sensual-kiss',
+      pattern: /ディープキス|舌を絡ませ(る|た|て|ない|よう)/g,
+      replacement: '熱を帯びた唇を重ね$1',
+      title: '🛡️ 官能セーフティ: 直接的口づけ表現',
+      desc: 'プラットフォーム規約リスクを低減し、文学的な情愛描写（「熱を帯びた唇を重ねる」「吐息を交わす」）への置換を推奨します。',
+      category: 'sensual',
+      canAutoFix: true
+    },
+    {
+      id: 'sensual-body',
+      pattern: /肉体関係|ベッドを共にす(る|た|て)/g,
+      replacement: '肌を重ね合わ$1',
+      title: '🛡️ 官能セーフティ: 直接的肉体関係',
+      desc: '露骨な表現を避け、「肌を重ね合わせる」「夜の静寂に身を委ねる」等の情景描写への昇華を推奨します。',
+      category: 'sensual',
+      canAutoFix: true
+    },
+    {
+      id: 'sensual-moan',
+      pattern: /喘ぎ声|嬌声/g,
+      replacement: '浅い吐息と衣擦れの音',
+      title: '🛡️ 官能セーフティ: 声の直接描写',
+      desc: '「浅い吐息」「途切れがちな呼吸」等の五感解像度を高めた文学的表現への置換を推奨します。',
+      category: 'sensual',
+      canAutoFix: true
+    },
+    {
+      id: 'sensual-caress',
+      pattern: /愛撫(し|す|され|する)/g,
+      replacement: '指先で微熱を辿$1',
+      title: '🛡️ 官能セーフティ: 愛撫',
+      desc: '「指先で微熱を辿る」「静かに肌の輪郭をなぞる」等の触感・テクスチャ描写への置換を推奨します。',
+      category: 'sensual',
+      canAutoFix: true
+    },
+    {
+      id: 'sensual-undress',
+      pattern: /衣服を脱ぎ捨(て|てる|てた)/g,
+      replacement: 'ボタンを外し、衣擦れの音を響かせ$1',
+      title: '🛡️ 官能セーフティ: 脱衣描写',
+      desc: '所作と音（衣擦れ・指先の躊躇）を克明に描くことで大人の心理サスペンスとしての緊張感を高めます。',
+      category: 'sensual',
+      canAutoFix: true
     }
   ];
 
@@ -1395,6 +1836,25 @@ ${antiAiInstruction}
           canAutoFix: rule.canAutoFix
         });
         if (!rule.pattern.global) break;
+      }
+    });
+
+    // 1.5 カスタム身バレ置換辞書の動的スキャン (v4.1)
+    const privacyDict = getPrivacyDict();
+    privacyDict.forEach((entry, idx) => {
+      if (!entry.real || !entry.fic) return;
+      const regex = new RegExp(entry.real.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        currentProofreadIssues.push({
+          id: `dict-privacy-${idx}`,
+          title: `🎭 身バレ辞書: 「${entry.real}」`,
+          targetText: match[0],
+          replacement: entry.fic,
+          desc: `登録された身バレ辞書に基づき、「${entry.fic}」への一括置換を提案します。`,
+          category: 'warning',
+          canAutoFix: true
+        });
       }
     });
 
@@ -1566,13 +2026,306 @@ ${antiAiInstruction}
   }
 
   // ==========================================
-  // 8.6 Gemini AI Polish Studio & Diff Viewer (v4.0 Core)
+  // Custom Privacy Dictionary Management (v4.1)
+  // ==========================================
+  const PRIVACY_DICT_KEY = 'tamaki_privacy_dict';
+  const defaultPrivacyPresets = [
+    { real: 'マークII', fic: 'クラシックセダン' },
+    { real: 'マークⅡ', fic: 'クラシックセダン' },
+    { real: 'セルシオ', fic: '旧型高級車' },
+    { real: 'シーマ', fic: '黒塗りの大型セダン' },
+    { real: 'ハイエース', fic: '商用ワンボックス' },
+    { real: 'ホテル伊丹', fic: '郊外のリバーサイドホテル' },
+    { real: 'HOTEL 伊丹', fic: '郊外のリバーサイドホテル' },
+    { real: 'ホテルオークラ', fic: '都心の老舗グランドホテル' },
+    { real: 'アパホテル', fic: '駅前のビジネスホテル' }
+  ];
+
+  function getPrivacyDict() {
+    try {
+      const raw = localStorage.getItem(PRIVACY_DICT_KEY);
+      if (!raw) {
+        localStorage.setItem(PRIVACY_DICT_KEY, JSON.stringify(defaultPrivacyPresets));
+        return defaultPrivacyPresets;
+      }
+      return JSON.parse(raw);
+    } catch (e) {
+      return defaultPrivacyPresets;
+    }
+  }
+
+  function savePrivacyDict(dict) {
+    try {
+      localStorage.setItem(PRIVACY_DICT_KEY, JSON.stringify(dict));
+      renderPrivacyDictTable();
+      runDebouncedProofread();
+    } catch (e) {
+      console.warn('Failed to save privacy dict:', e);
+    }
+  }
+
+  function renderPrivacyDictTable() {
+    if (!privacyDictTbody) return;
+    privacyDictTbody.innerHTML = '';
+    const dict = getPrivacyDict();
+
+    if (dict.length === 0) {
+      privacyDictTbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1rem;">登録された辞書がありません。「代表的プリセットを投入」または単語を追加してください。</td></tr>';
+      return;
+    }
+
+    dict.forEach((entry, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight: 600; color: #fca5a5;">${escapeHtml(entry.real)}</td>
+        <td style="color: #86efac;">${escapeHtml(entry.fic)}</td>
+        <td style="text-align: center;">
+          <button type="button" class="btn-text-sm text-danger btn-delete-dict-entry" data-index="${idx}" title="削除">&times; 削除</button>
+        </td>
+      `;
+      privacyDictTbody.appendChild(tr);
+    });
+
+    privacyDictTbody.querySelectorAll('.btn-delete-dict-entry').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.index, 10);
+        const current = getPrivacyDict();
+        current.splice(idx, 1);
+        savePrivacyDict(current);
+        showToast('単語を辞書から削除しました');
+      });
+    });
+  }
+
+  function applyPrivacyDictionaryToEditor() {
+    if (!outputEditor) return;
+    let text = outputEditor.value;
+    if (!text.trim()) {
+      showToast('置換対象のエディタ本文が空です');
+      return;
+    }
+
+    const dict = getPrivacyDict();
+    let replacedCount = 0;
+
+    dict.forEach(entry => {
+      if (!entry.real || !entry.fic) return;
+      const regex = new RegExp(entry.real.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      const matches = text.match(regex);
+      if (matches) {
+        replacedCount += matches.length;
+        text = text.replace(regex, entry.fic);
+      }
+    });
+
+    if (replacedCount > 0) {
+      saveHistory(outputEditor.value);
+      outputEditor.value = text;
+      updateStats();
+      showToast(`🎭 ${replacedCount}箇所の固有名詞をフィクション化しました！`);
+      if (modalPrivacyDict) modalPrivacyDict.classList.add('hidden');
+    } else {
+      showToast('登録された固有名詞は原稿内に見つかりませんでした');
+    }
+  }
+
+  if (btnAddDictEntry && dictInputReal && dictInputFic) {
+    btnAddDictEntry.addEventListener('click', () => {
+      const real = dictInputReal.value.trim();
+      const fic = dictInputFic.value.trim();
+      if (!real || !fic) {
+        showToast('実名と置換後の両方を入力してください');
+        return;
+      }
+      const dict = getPrivacyDict();
+      dict.push({ real, fic });
+      savePrivacyDict(dict);
+      dictInputReal.value = '';
+      dictInputFic.value = '';
+      showToast(`「${real}」➔「${fic}」を登録しました`);
+    });
+  }
+
+  if (btnLoadDictPresets) {
+    btnLoadDictPresets.addEventListener('click', () => {
+      const current = getPrivacyDict();
+      const merged = [...current];
+      defaultPrivacyPresets.forEach(preset => {
+        if (!merged.some(m => m.real === preset.real)) {
+          merged.push(preset);
+        }
+      });
+      savePrivacyDict(merged);
+      showToast('✨ 代表的プリセットを投入しました');
+    });
+  }
+
+  if (btnExportDictJson) {
+    btnExportDictJson.addEventListener('click', () => {
+      const dict = getPrivacyDict();
+      const blob = new Blob([JSON.stringify(dict, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'tamaki_privacy_dict.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('📥 身バレ辞書をJSON保存しました');
+    });
+  }
+
+  if (btnImportDictJson && dictFileInput) {
+    btnImportDictJson.addEventListener('click', () => dictFileInput.click());
+    dictFileInput.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (Array.isArray(imported)) {
+            savePrivacyDict(imported);
+            showToast(`📤 ${imported.length}件の辞書をインポートしました！`);
+          } else {
+            showToast('JSONの形式が正しくありません');
+          }
+        } catch (err) {
+          showToast('JSON読み込みに失敗しました');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+  }
+
+  if (btnPrivacyDict && modalPrivacyDict) {
+    btnPrivacyDict.addEventListener('click', () => {
+      renderPrivacyDictTable();
+      modalPrivacyDict.classList.remove('hidden');
+    });
+  }
+  if (btnClosePrivacyModal && modalPrivacyDict) {
+    btnClosePrivacyModal.addEventListener('click', () => modalPrivacyDict.classList.add('hidden'));
+  }
+  if (btnClosePrivacyFooter && modalPrivacyDict) {
+    btnClosePrivacyFooter.addEventListener('click', () => modalPrivacyDict.classList.add('hidden'));
+  }
+  if (btnApplyPrivacyAll) {
+    btnApplyPrivacyAll.addEventListener('click', applyPrivacyDictionaryToEditor);
+  }
+  if (btnApplyPrivacyDictFooter) {
+    btnApplyPrivacyDictFooter.addEventListener('click', applyPrivacyDictionaryToEditor);
+  }
+
+  // ==========================================
+  // Long-Form Outline Navigator (v4.1)
+  // ==========================================
+  function updateOutline() {
+    if (!outlineItems || !outputEditor) return;
+    const text = outputEditor.value;
+    const lines = text.split('\n');
+    const headings = [];
+    let charOffset = 0;
+
+    lines.forEach((line, lineIdx) => {
+      const trimmed = line.trim();
+      // Match markdown headings or novel chapter markers
+      if (/^#{1,4}\s+/.test(trimmed)) {
+        const level = trimmed.match(/^#+/)[0].length;
+        const title = trimmed.replace(/^#+\s+/, '');
+        headings.push({ level, title, pos: charOffset, lineIdx });
+      } else if (/^(?:第[0-9一二三四五六七八九十百千万]+[章話節幕回]|■|【[^】]+】|プロローグ|エピローグ)/.test(trimmed)) {
+        headings.push({ level: 2, title: trimmed, pos: charOffset, lineIdx });
+      }
+      charOffset += line.length + 1; // +1 for \n
+    });
+
+    if (outlineCountBadge) {
+      outlineCountBadge.textContent = headings.length;
+    }
+
+    if (headings.length === 0) {
+      outlineItems.innerHTML = '<div class="outline-empty">見出し（# 第一章、■、第N話 等）を入力すると自動で目次が生成されます</div>';
+      return;
+    }
+
+    outlineItems.innerHTML = '';
+    headings.forEach(h => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `outline-item level-${Math.min(h.level, 3)}`;
+      btn.innerHTML = `<span style="opacity: 0.6; font-size: 0.7rem;">L${h.level}</span> <span>${escapeHtml(h.title)}</span>`;
+      btn.addEventListener('click', () => {
+        outputEditor.focus();
+        outputEditor.setSelectionRange(h.pos, h.pos);
+        // Scroll roughly to position
+        const totalLen = outputEditor.value.length;
+        if (totalLen > 0) {
+          const ratio = h.pos / totalLen;
+          outputEditor.scrollTop = outputEditor.scrollHeight * ratio;
+        }
+      });
+      outlineItems.appendChild(btn);
+    });
+  }
+
+  if (btnToggleOutline && outlineDrawer) {
+    btnToggleOutline.addEventListener('click', () => {
+      outlineDrawer.classList.toggle('hidden');
+      if (!outlineDrawer.classList.contains('hidden')) {
+        updateOutline();
+      }
+    });
+  }
+  if (btnCloseOutline && outlineDrawer) {
+    btnCloseOutline.addEventListener('click', () => {
+      outlineDrawer.classList.add('hidden');
+    });
+  }
+
+  // ==========================================
+  // Partial Polish (Selection-based Rewrite v4.1)
+  // ==========================================
+  let activeTextSelection = null;
+
+  function checkEditorSelection() {
+    if (!outputEditor) return;
+    const start = outputEditor.selectionStart;
+    const end = outputEditor.selectionEnd;
+    if (start !== undefined && end !== undefined && start < end) {
+      const selected = outputEditor.value.substring(start, end).trim();
+      if (selected.length > 0) {
+        activeTextSelection = { start, end, text: selected };
+        if (selectionPolishBadge && selectedCharCount) {
+          selectedCharCount.textContent = selected.length;
+          selectionPolishBadge.classList.remove('hidden');
+        }
+        return;
+      }
+    }
+    activeTextSelection = null;
+    if (selectionPolishBadge) {
+      selectionPolishBadge.classList.add('hidden');
+    }
+  }
+
+  if (outputEditor) {
+    outputEditor.addEventListener('select', checkEditorSelection);
+    outputEditor.addEventListener('keyup', checkEditorSelection);
+    outputEditor.addEventListener('mouseup', checkEditorSelection);
+  }
+
+  // ==========================================
+  // 8.6 Gemini AI Polish Studio & Diff Viewer (v4.0 & v4.1 Partial Polish)
   // ==========================================
   let lastPolishedFullText = '';
+  let lastPolishedSelection = null; // { start, end, text } if partial
 
   async function runAiPolish(mode) {
-    const text = outputEditor.value.trim();
-    if (!text) {
+    const isPartial = activeTextSelection && activeTextSelection.text.trim().length > 0;
+    const textToPolish = isPartial ? activeTextSelection.text : outputEditor.value.trim();
+
+    if (!textToPolish) {
       showToast('まず文章を入力またはAI生成してください');
       return;
     }
@@ -1583,7 +2336,11 @@ ${antiAiInstruction}
       return;
     }
 
-    const modeName = mode === 'proofread' ? 'AI精密校正' : 'たまき節 推敲ブラッシュアップ';
+    lastPolishedSelection = isPartial ? { ...activeTextSelection } : null;
+
+    const baseModeName = mode === 'proofread' ? 'AI精密校正' : 'たまき節 推敲ブラッシュアップ';
+    const modeName = isPartial ? `${baseModeName} (✂️ 選択範囲 ${activeTextSelection.text.length}字)` : baseModeName;
+
     loadingText.textContent = `${modeName}を実行中...`;
     loadingSub.textContent = mode === 'proofread'
       ? '（文脈に沿った誤字脱字、同音異義語、主語述語のねじれを精査中）'
@@ -1593,7 +2350,7 @@ ${antiAiInstruction}
     let systemInstruction = '';
     if (mode === 'proofread') {
       systemInstruction = `あなたは出版社のベテラン校閲者です。
-与えられた原稿の誤字脱字、文脈的誤用、ら抜き言葉、助詞の重なり、主語と述語のねじれを客観的・精密に校正してください。
+与えられた原稿（または選択された段落）の誤字脱字、文脈的誤用、ら抜き言葉、助詞の重なり、主語と述語のねじれを客観的・精密に校正してください。
 
 【厳格な出力形式】
 必ず以下の2つのセクションに分けて出力してください。挨拶やコードブロックは含めないでください：
@@ -1602,10 +2359,10 @@ ${antiAiInstruction}
 ・修正した箇所と修正理由を箇条書きで簡潔に記述
 
 【推敲原稿】
-（校正後の本文全文）`;
+（校正後の文章。前後の文脈に自然に組み込める形式）`;
     } else {
       systemInstruction = `あなたは筆者「たまきぱずず」の文体を深く愛し、noteでの反響を最大化する優秀な名編集者です。
-与えられた原稿を推敲・ブラッシュアップしてください。
+与えられた原稿（または選択された段落）を推敲・ブラッシュアップしてください。
 
 【推敲の最重要方針】
 1. 筆者の最大の魅力である「鋭いメタ認知（自虐・自問自答）」「思考の脱線（寄り道・思い迷うプロセス）」「生々しい五感解像度（具体的な数字、商品名、生活感）」「軽妙なオチのキレ」は絶対に消さず、むしろリズムよく際立たせること。
@@ -1618,7 +2375,7 @@ ${antiAiInstruction}
 （編集者の視点から、どのような意図でどこをどう引き締めたかを3〜4行で具体的に解説）
 
 【推敲原稿】
-（推敲後の本文全文。noteにそのまま投稿できるMarkdown形式）`;
+（推敲後の文章。noteにそのまま適用できるMarkdown形式）`;
     }
 
     try {
@@ -1631,7 +2388,7 @@ ${antiAiInstruction}
             role: 'user',
             parts: [
               {
-                text: `${systemInstruction}\n\n---\n【対象の原稿本文】\n${text}`
+                text: `${systemInstruction}\n\n---\n【対象の原稿本文${isPartial ? '（※選択範囲のみ）' : ''}】\n${textToPolish}`
               }
             ]
           }
@@ -1676,7 +2433,7 @@ ${antiAiInstruction}
       polishedText = polishedText.replace(/^```(?:markdown)?\n?/, '').replace(/\n?```$/, '').trim();
       lastPolishedFullText = polishedText;
 
-      openPolishDiffModal(modeName, advice, text, polishedText);
+      openPolishDiffModal(modeName, advice, textToPolish, polishedText);
 
     } catch (err) {
       console.error(err);
@@ -1781,16 +2538,49 @@ ${antiAiInstruction}
     btnApplyPolished.addEventListener('click', () => {
       if (!lastPolishedFullText || !outputEditor) return;
       saveHistory(outputEditor.value);
-      outputEditor.value = lastPolishedFullText;
+
+      if (lastPolishedSelection && lastPolishedSelection.start !== undefined && lastPolishedSelection.end !== undefined) {
+        // Apply partial replacement to selection range
+        const full = outputEditor.value;
+        const newText = full.substring(0, lastPolishedSelection.start) + lastPolishedFullText + full.substring(lastPolishedSelection.end);
+        outputEditor.value = newText;
+        outputEditor.focus();
+        outputEditor.setSelectionRange(
+          lastPolishedSelection.start,
+          lastPolishedSelection.start + lastPolishedFullText.length
+        );
+        showToast('✨ 選択範囲の推敲案を反映しました！');
+      } else {
+        outputEditor.value = lastPolishedFullText;
+        showToast('✨ 全文の推敲案をエディタに反映しました！');
+      }
       updateStats();
+      saveLocalDraft();
       modalPolishDiff.classList.add('hidden');
-      showToast('✨ 推敲案をエディタに反映しました！（旧原稿は履歴に保存されました）');
     });
   }
 
-  if (btnPolishTamaki) {
-    btnPolishTamaki.addEventListener('click', () => {
-      runAiPolish('tamaki');
+  if (btnDownloadKdpMd) {
+    btnDownloadKdpMd.addEventListener('click', () => {
+      const title = (kdpBookTitle && kdpBookTitle.value.trim()) || 'novel';
+      const text = getDendenMarkdownText();
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title.replace(/[\\/:*?"<>|]/g, '_')}_denden.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('📄 でんでんコンバーター用Markdownを保存しました！');
+    });
+  }
+
+  if (btnCopyKdpText) {
+    btnCopyKdpText.addEventListener('click', () => {
+      const text = getDendenMarkdownText();
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('📋 でんでん整形原稿をコピーしました！');
+      });
     });
   }
 
@@ -2304,6 +3094,18 @@ ${text}
     }
   }
 
+  // Network Online / Offline Detection (v4.1)
+  window.addEventListener('online', () => {
+    updateSyncUIStatus('synced', `🟢 同期完了 (${getSyncCode()})`);
+    showToast('🌐 オンラインに復帰しました。デバイス同期を再開します');
+    pullFromCloud(true);
+  });
+
+  window.addEventListener('offline', () => {
+    updateSyncUIStatus('offline', '🔴 オフライン保存');
+    showToast('📶 オフライン状態です。原稿は端末内（LocalStorage）に安全保存されています');
+  });
+
   function updateSyncUIStatus(stateType, text) {
     // stateType: 'synced' | 'syncing' | 'error' | 'idle'
     if (headerSyncStatus) {
@@ -2347,6 +3149,13 @@ ${text}
       updatedDevice: isMobile ? 'iPhone' : 'Mac',
       mode: state.currentMode,
       outputEditorText: outputEditor ? outputEditor.value : '',
+      dualMonologue: {
+        enabled: !!(toggleDualMonologue && toggleDualMonologue.checked),
+        nameMale: dualNameMale ? dualNameMale.value : '俺',
+        nameFemale: dualNameFemale ? dualNameFemale.value : '保江',
+        textMale: dualInputMale ? dualInputMale.value : '',
+        textFemale: dualInputFemale ? dualInputFemale.value : ''
+      },
       tuning: {
         tone: state.tuning.tone,
         meta: state.tuning.meta,
@@ -2411,13 +3220,17 @@ ${text}
         'essay-theme', 'essay-experience', 'essay-insight', 'essay-ending',
         'subculture-target', 'subculture-doubts', 'subculture-insight', 'subculture-ending',
         'novel-characters', 'novel-setting', 'novel-focus', 'novel-ending',
-        'detox-input'
+        'detox-input', 'dual-input-male', 'dual-input-female'
       ];
       allSaveInputIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
       if (outputEditor) outputEditor.value = '';
+      if (toggleDualMonologue) {
+        toggleDualMonologue.checked = false;
+        if (dualMonologuePanel) dualMonologuePanel.classList.add('hidden');
+      }
       if (btnResetTuning) btnResetTuning.click();
       const badge = document.getElementById('autosave-status-text');
       if (badge) badge.textContent = '💾 下書きクリア完了';
@@ -2430,6 +3243,19 @@ ${text}
 
     if (payload.outputEditorText !== undefined && outputEditor) {
       outputEditor.value = payload.outputEditorText;
+    }
+
+    if (payload.dualMonologue) {
+      if (toggleDualMonologue) {
+        toggleDualMonologue.checked = !!payload.dualMonologue.enabled;
+        if (dualMonologuePanel) {
+          dualMonologuePanel.classList.toggle('hidden', !payload.dualMonologue.enabled);
+        }
+      }
+      if (dualNameMale && payload.dualMonologue.nameMale) dualNameMale.value = payload.dualMonologue.nameMale;
+      if (dualNameFemale && payload.dualMonologue.nameFemale) dualNameFemale.value = payload.dualMonologue.nameFemale;
+      if (dualInputMale && payload.dualMonologue.textMale !== undefined) dualInputMale.value = payload.dualMonologue.textMale;
+      if (dualInputFemale && payload.dualMonologue.textFemale !== undefined) dualInputFemale.value = payload.dualMonologue.textFemale;
     }
 
     if (payload.formValues) {
@@ -2524,7 +3350,8 @@ ${text}
     const payload = getCurrentDraftPayload();
     const syncCode = payload.syncCode;
 
-    if (!isSilent) updateSyncUIStatus('syncing', '保存中...');
+    if (!navigator.onLine) { updateSyncUIStatus('offline', '🔴 オフライン保存'); return; }
+    if (!isSilent) updateSyncUIStatus('syncing', '🟡 同期中...');
 
     try {
       localStorage.setItem(`tamaki_cloud_cache_${syncCode}`, JSON.stringify(payload));
@@ -2559,7 +3386,7 @@ ${text}
       hasPendingChanges = false;
 
       const dateStr = new Date(payload.updatedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-      updateSyncUIStatus('synced', `同期中 (${syncCode})`);
+      updateSyncUIStatus('synced', `🟢 同期完了 (${syncCode})`);
       if (syncCardTime) syncCardTime.textContent = `最終同期: ${dateStr} (${payload.updatedDevice})`;
 
       if (!isSilent) {
@@ -2567,14 +3394,15 @@ ${text}
       }
     } catch (e) {
       console.warn('Cloud push warning:', e);
-      updateSyncUIStatus('synced', `同期中 (${syncCode})`);
+      updateSyncUIStatus('synced', `🟢 同期完了 (${syncCode})`);
     }
   }
 
   // Pull Data from Cloud Relay
   async function pullFromCloud(isSilent = false) {
     const syncCode = getSyncCode();
-    if (!isSilent) updateSyncUIStatus('syncing', '取得中...');
+    if (!navigator.onLine) { updateSyncUIStatus('offline', '🔴 オフライン保存'); return; }
+    if (!isSilent) updateSyncUIStatus('syncing', '🟡 同期中...');
 
     try {
       let payload = null;
@@ -2642,7 +3470,7 @@ ${text}
         showToast(`⚠️ コード [${syncCode}] のクラウドデータがまだありません。まずはデータのある端末（${currentDeviceLabel === 'iPhone' ? 'Mac' : 'iPhone'}側）で「今すぐクラウドに保存」を押してください`);
       }
 
-      updateSyncUIStatus('synced', `同期中 (${syncCode})`);
+      updateSyncUIStatus('synced', `🟢 同期完了 (${syncCode})`);
     } catch (e) {
       console.warn('Cloud pull error:', e);
       updateSyncUIStatus('synced', `同期中 (${syncCode})`);
