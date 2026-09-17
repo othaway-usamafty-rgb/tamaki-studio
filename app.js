@@ -3823,7 +3823,7 @@ ${text}
   parseUrlParamsOnLaunch();
 
   // Close modals on backdrop click
-  [modalApiSettings, modalHistory, modalGuide, modalMobileSync].forEach(modal => {
+  [modalApiSettings, modalHistory, modalGuide, modalMobileSync, modalPolishDiff, modalPrivacyDict, modalKdpExport].forEach(modal => {
     if (modal) {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
@@ -3831,6 +3831,156 @@ ${text}
         }
       });
     }
+  });
+
+  // =========================================================================
+  // iPhone 14 Pro & Mobile Quick Writing Assist Bar (v4.1.1)
+  // =========================================================================
+  const quickAssistBar = document.getElementById('quick-assist-bar');
+  const btnQuickUndo = document.getElementById('btn-quick-undo');
+  const btnQuickCopy = document.getElementById('btn-quick-copy');
+  const btnQuickZen = document.getElementById('btn-quick-zen');
+
+  // Quick Undo Buffer
+  const quickUndoStack = [];
+  function saveUndoState() {
+    if (outputEditor) {
+      quickUndoStack.push(outputEditor.value);
+      if (quickUndoStack.length > 30) quickUndoStack.shift();
+    }
+  }
+
+  // Quick insertion & symbol bracket wrapping
+  if (quickAssistBar) {
+    quickAssistBar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.assist-btn');
+      if (!btn || btn.classList.contains('assist-action')) return;
+
+      const targetEl = (lastActiveInput && (lastActiveInput.tagName === 'TEXTAREA' || lastActiveInput.tagName === 'INPUT')) 
+        ? lastActiveInput 
+        : outputEditor;
+
+      if (!targetEl) return;
+
+      const insertStr = btn.getAttribute('data-insert');
+      const wrapStart = btn.getAttribute('data-wrap');
+      const wrapEnd = btn.getAttribute('data-wrap-end');
+
+      if (insertStr || wrapStart) {
+        saveUndoState();
+        const start = targetEl.selectionStart || 0;
+        const end = targetEl.selectionEnd || 0;
+        const currentVal = targetEl.value;
+
+        if (wrapStart && wrapEnd) {
+          const selectedText = currentVal.substring(start, end);
+          if (selectedText) {
+            const newText = currentVal.substring(0, start) + wrapStart + selectedText + wrapEnd + currentVal.substring(end);
+            targetEl.value = newText;
+            targetEl.selectionStart = start + wrapStart.length;
+            targetEl.selectionEnd = end + wrapStart.length;
+          } else {
+            const newText = currentVal.substring(0, start) + wrapStart + wrapEnd + currentVal.substring(end);
+            targetEl.value = newText;
+            targetEl.selectionStart = start + wrapStart.length;
+            targetEl.selectionEnd = start + wrapStart.length;
+          }
+        } else if (insertStr) {
+          const newText = currentVal.substring(0, start) + insertStr + currentVal.substring(end);
+          targetEl.value = newText;
+          targetEl.selectionStart = start + insertStr.length;
+          targetEl.selectionEnd = start + insertStr.length;
+        }
+
+        targetEl.focus();
+        targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+        if (targetEl === outputEditor) updateStats();
+      }
+    });
+  }
+
+  // Quick Undo
+  if (btnQuickUndo) {
+    btnQuickUndo.addEventListener('click', () => {
+      if (quickUndoStack.length > 0 && outputEditor) {
+        const prev = quickUndoStack.pop();
+        outputEditor.value = prev;
+        outputEditor.dispatchEvent(new Event('input', { bubbles: true }));
+        updateStats();
+        showToast('↩ 直前の状態に戻しました');
+      } else {
+        try {
+          document.execCommand('undo');
+        } catch (err) {}
+      }
+    });
+  }
+
+  // Quick Copy
+  if (btnQuickCopy) {
+    btnQuickCopy.addEventListener('click', () => {
+      if (outputEditor && outputEditor.value.trim()) {
+        navigator.clipboard.writeText(outputEditor.value).then(() => {
+          showToast('📋 全文章をコピーしました！');
+        }).catch(() => {
+          outputEditor.select();
+          document.execCommand('copy');
+          showToast('📋 全文章をコピーしました！');
+        });
+      } else {
+        showToast('⚠️ コピーする文章がありません');
+      }
+    });
+  }
+
+  // iPhone Concentration Zen Mode
+  if (btnQuickZen) {
+    btnQuickZen.addEventListener('click', () => {
+      const isZen = document.body.classList.toggle('zen-focus-mode');
+      if (isZen) {
+        btnQuickZen.innerHTML = '✕ 解除';
+        btnQuickZen.style.color = '#f87171';
+        btnQuickZen.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        showToast('🔲 iPhone集中執筆モード ON（上部・サイドを非表示）');
+      } else {
+        btnQuickZen.innerHTML = '🔲 集中';
+        btnQuickZen.style.color = '';
+        btnQuickZen.style.borderColor = '';
+        showToast('通常表示に戻りました');
+      }
+    });
+  }
+
+  // Touch Drag-Down to Dismiss for iOS Bottom Sheet Modals
+  document.querySelectorAll('.modal-card').forEach(card => {
+    let startY = 0;
+    let currentY = 0;
+    const handle = card.querySelector('.modal-drag-handle');
+    if (!handle) return;
+
+    handle.addEventListener('touchstart', (e) => {
+      startY = e.touches[0].clientY;
+      currentY = startY;
+    }, { passive: true });
+
+    handle.addEventListener('touchmove', (e) => {
+      currentY = e.touches[0].clientY;
+      const diffY = currentY - startY;
+      if (diffY > 0) {
+        card.style.transform = `translateY(${diffY}px)`;
+      }
+    }, { passive: true });
+
+    handle.addEventListener('touchend', () => {
+      const diffY = currentY - startY;
+      if (diffY > 80) {
+        const modal = card.closest('.modal-backdrop');
+        if (modal) modal.classList.add('hidden');
+      }
+      card.style.transform = '';
+      startY = 0;
+      currentY = 0;
+    });
   });
 
   // Service Worker Registration for Offline PWA Support & Auto Update

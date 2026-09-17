@@ -59,6 +59,7 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   background-image: 
     radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.14) 0px, transparent 50%),
@@ -75,6 +76,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
   gap: 1.25rem;
 }
 
@@ -1606,53 +1608,137 @@ button {
   bottom: 0;
   left: 0;
   right: 0;
-  height: calc(3.8rem + env(safe-area-inset-bottom, 0px));
+  height: calc(3.6rem + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: rgba(13, 17, 23, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid var(--border-subtle);
+  background: rgba(13, 17, 23, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 900;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
   align-items: center;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
 }
 
 .mobile-nav-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  height: 2.75rem;
+  gap: 0.35rem;
+  height: 2.65rem;
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
   position: relative;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mobile-nav-btn:active {
+  transform: scale(0.96);
 }
 
 .mobile-nav-btn.active {
-  background: var(--bg-tertiary);
+  background: rgba(245, 158, 11, 0.12);
   color: var(--accent-amber);
-  border-color: var(--border-subtle);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 .mob-sync-pill {
-  font-size: 0.7rem;
-  background: var(--accent-indigo);
+  font-size: 0.65rem;
+  background: var(--brand-gradient);
   color: #fff;
-  padding: 0.1rem 0.4rem;
+  padding: 0.1rem 0.35rem;
   border-radius: 999px;
   font-weight: 700;
+}
+
+/* Quick Writing Assist Bar (iPhone & Mobile Writing Optimization) */
+.quick-assist-bar {
+  background: rgba(18, 24, 38, 0.95);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.5rem;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.assist-scroll-track {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+.assist-scroll-track::-webkit-scrollbar {
+  display: none;
+}
+
+.assist-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  min-height: 34px;
+}
+
+.assist-btn:active {
+  background: rgba(99, 102, 241, 0.3);
+  transform: scale(0.95);
+  border-color: rgba(99, 102, 241, 0.6);
+}
+
+.assist-btn.assist-action {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.assist-btn.assist-action:active {
+  background: rgba(245, 158, 11, 0.3);
+}
+
+.assist-divider {
+  display: inline-block;
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 0.15rem;
+  flex-shrink: 0;
+}
+
+/* Modal Drag Handle for iOS Bottom Sheet */
+.modal-drag-handle {
+  display: none;
 }
 
 /* QR Code Wrapper */
@@ -1674,7 +1760,7 @@ button {
   }
 }
 
-/* iPhone & Mobile Optimized Styles (<= 768px) */
+/* iPhone 14 Pro & Mobile Optimized Styles (<= 768px, specifically 393px) */
 @media (max-width: 768px) {
   :root {
     --container-max: 100%;
@@ -1682,38 +1768,54 @@ button {
 
   body {
     padding-top: env(safe-area-inset-top, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
     -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: none;
   }
 
   .app-container {
-    padding: 0.65rem 0.75rem calc(4.5rem + env(safe-area-inset-bottom, 0px)) 0.75rem;
-    gap: 0.75rem;
+    padding: calc(0.4rem + env(safe-area-inset-top, 0px)) 0.65rem calc(4.2rem + env(safe-area-inset-bottom, 0px)) 0.65rem;
+    gap: 0.65rem;
   }
 
   .app-header {
     flex-wrap: wrap;
-    gap: 0.6rem;
-    padding-bottom: 0.6rem;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
   }
 
   .brand-text h1 {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
   }
 
   .brand-text .subtitle {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .header-actions {
     width: 100%;
     justify-content: flex-start;
     overflow-x: auto;
-    padding-bottom: 0.25rem;
+    padding-bottom: 0.15rem;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0.35rem;
+  }
+  .header-actions::-webkit-scrollbar {
+    display: none;
   }
 
-  .header-actions button {
+  .header-actions button,
+  .header-actions a {
     flex-shrink: 0;
+    padding: 0.3rem 0.55rem;
+    font-size: 0.75rem;
+    min-height: 36px;
   }
 
   /* Prevent iOS Safari Form Zoom: Enforce 16px font */
@@ -1724,23 +1826,26 @@ button {
     font-size: 16px !important;
   }
 
-  /* Slider Touch Target Optimization */
+  /* Slider Touch Target Optimization (44px HIG Rule) */
   input[type="range"] {
-    height: 36px;
+    height: 40px;
     cursor: pointer;
   }
 
   input[type="range"]::-webkit-slider-thumb {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
   }
 
-  /* Display Mobile Navigation */
+  /* Display Mobile Bottom Navigation */
   .mobile-bottom-nav {
     display: grid;
   }
 
   /* Switchable panels on mobile */
+  body.mobile-view-input .output-panel,
   body.mobile-view-input .editor-panel {
     display: none !important;
   }
@@ -1749,42 +1854,146 @@ button {
     display: none !important;
   }
 
-  /* Editor height on mobile */
+  /* Editor height on mobile (iPhone 14 Pro 852px Viewport) */
   .editor-wrapper {
-    min-height: 360px;
+    min-height: calc(100dvh - 270px);
+    min-height: calc(100vh - 270px);
   }
 
   .editor-textarea {
-    min-height: 360px;
+    min-height: calc(100dvh - 270px);
+    min-height: calc(100vh - 270px);
+    font-size: 16px !important;
+    line-height: 1.85;
   }
 
-  /* Modal fullscreen on small phones */
-  .modal-card {
-    max-width: 95vw;
-    max-height: 90vh;
+  /* iOS Native Style Bottom Sheet Modals */
+  .modal-backdrop {
+    align-items: flex-end !important;
+    padding: 0 !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
-  .modal-card.modal-lg {
-    max-width: 95vw;
+  .modal-drag-handle {
+    display: block;
+    width: 38px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.28);
+    margin: 8px auto 4px auto;
+    flex-shrink: 0;
+  }
+
+  .modal-card,
+  .modal-card.modal-lg,
+  .modal-card-lg,
+  .modal-card-large,
+  .modal-card-xl {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 88dvh !important;
+    max-height: 88vh !important;
+    border-radius: 22px 22px 0 0 !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    margin: 0 !important;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 16px)) !important;
+    animation: slideUpSheet 0.26s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  @keyframes slideUpSheet {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    padding: 0.75rem 1.1rem;
   }
 
   .modal-body {
-    max-height: 70vh;
-    padding: 1rem;
+    max-height: calc(88dvh - 130px) !important;
+    max-height: calc(88vh - 130px) !important;
+    padding: 0.85rem 1.1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-footer {
+    padding: 0.75rem 1.1rem;
   }
 
   /* Horizontal chips scroll on mobile */
   .phrase-palette,
-  .rewrite-chips {
+  .rewrite-chips,
+  .quick-rewrite-bar {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.35rem;
   }
 
   .rewrite-chip,
   .palette-chip {
-    padding: 0.4rem 0.65rem;
+    padding: 0.35rem 0.6rem;
     font-size: 0.75rem;
+    min-height: 34px;
+  }
+
+  /* Kindle KDP Modal on iPhone 14 Pro */
+  .modal-card-xl {
+    height: 88dvh !important;
+    height: 88vh !important;
+  }
+
+  .kdp-config-bar {
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .kdp-meta-inputs {
+    flex-direction: column;
+    min-width: 100%;
+    gap: 0.4rem;
+  }
+
+  .kdp-preview-viewport {
+    padding: 1rem 1.25rem;
+  }
+
+  .kdp-vertical-viewer {
+    font-size: 1rem;
+    line-height: 2;
+  }
+
+  /* iPhone Zen Mode (Concentration Writing) */
+  body.zen-focus-mode .app-header,
+  body.zen-focus-mode .input-panel,
+  body.zen-focus-mode .output-tabs,
+  body.zen-focus-mode .synchro-meter-card,
+  body.zen-focus-mode .fact-check-banner,
+  body.zen-focus-mode .alert-banner,
+  body.zen-focus-mode .proofread-inspector,
+  body.zen-focus-mode .quick-rewrite-bar,
+  body.zen-focus-mode .mobile-bottom-nav {
+    display: none !important;
+  }
+
+  body.zen-focus-mode .app-container {
+    padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0.65rem calc(0.5rem + env(safe-area-inset-bottom, 0px)) 0.65rem !important;
+  }
+
+  body.zen-focus-mode .editor-wrapper,
+  body.zen-focus-mode .editor-textarea {
+    min-height: calc(100dvh - 90px) !important;
+    min-height: calc(100vh - 90px) !important;
+    font-size: 1.05rem !important;
+    line-height: 1.9 !important;
   }
 }
 

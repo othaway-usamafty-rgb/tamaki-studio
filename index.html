@@ -2,9 +2,9 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="robots" content="noindex, nofollow">
-  <title>Tamaki Studio v4.1.0 | たまきぱずず＆あずますくね専属 執筆工房</title>
+  <title>Tamaki Studio v4.1.1 | たまきぱずず＆あずますくね専属 執筆工房</title>
   <meta name="description" content="たまきぱずず氏特有の文体およびあずますくね風『日常の静寂と秘められた微熱』・大人の情愛・心理サスペンスを完全再現・支援する専用執筆工房">
   
   <!-- iPhone / PWA Mobile App Support -->
@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Shippori+Mincho:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4.1.0">
+  <link rel="stylesheet" href="styles.css?v=4.1.1">
 </head>
 <body>
   <div class="app-container">
@@ -32,7 +32,7 @@
           </svg>
         </div>
         <div class="brand-text">
-          <h1>Tamaki Studio <span class="badge badge-pulse">v4.1.0</span></h1>
+          <h1>Tamaki Studio <span class="badge badge-pulse">v4.1.1</span></h1>
           <p class="subtitle">大人の情愛・心理サスペンス・エッセイ執筆＆校正推敲スタジオ</p>
         </div>
       </div>
@@ -602,6 +602,24 @@
           <button class="rewrite-chip" data-action="clean-ai">✨ 脱論文化</button>
         </div>
 
+        <!-- iPhone & Mobile Quick Writing Assist Bar (v4.1.1) -->
+        <div class="quick-assist-bar" id="quick-assist-bar">
+          <div class="assist-scroll-track">
+            <button type="button" class="assist-btn" data-insert="……" title="三点リーダー">……</button>
+            <button type="button" class="assist-btn" data-insert="――" title="ダッシュ">――</button>
+            <button type="button" class="assist-btn" data-wrap="「" data-wrap-end="」" title="かぎ括弧">「 」</button>
+            <button type="button" class="assist-btn" data-wrap="『" data-wrap-end="』" title="二重かぎ括弧">『 』</button>
+            <button type="button" class="assist-btn" data-wrap="｜" data-wrap-end="《》" title="小説ルビ記法">｜ルビ《》</button>
+            <button type="button" class="assist-btn" data-insert="、" title="読点">、</button>
+            <button type="button" class="assist-btn" data-insert="。" title="句点">。</button>
+            <button type="button" class="assist-btn" data-insert="！？" title="感嘆符疑問符">！？</button>
+            <span class="assist-divider"></span>
+            <button type="button" class="assist-btn assist-action" id="btn-quick-undo" title="直前の入力を元に戻す">↩ 戻す</button>
+            <button type="button" class="assist-btn assist-action" id="btn-quick-copy" title="全文章をコピー">📋 コピー</button>
+            <button type="button" class="assist-btn assist-action" id="btn-quick-zen" title="iPhone集中執筆モード切り替え">🔲 集中</button>
+          </div>
+        </div>
+
         <!-- Editor Area with Outline Drawer -->
         <div class="editor-wrapper">
           <!-- Text Area for Editing -->
@@ -664,6 +682,7 @@
     <!-- Modal: API Settings -->
     <div id="modal-api-settings" class="modal-backdrop hidden">
       <div class="modal-card">
+        <div class="modal-drag-handle"></div>
         <div class="modal-header">
           <h3>⚡ API連携設定</h3>
           <button class="modal-close" id="btn-close-api-modal">&times;</button>
@@ -707,6 +726,7 @@
     <!-- Modal: History -->
     <div id="modal-history" class="modal-backdrop hidden">
       <div class="modal-card modal-lg">
+        <div class="modal-drag-handle"></div>
         <div class="modal-header">
           <h3>🕒 執筆・生成履歴</h3>
           <button class="modal-close" id="btn-close-history-modal">&times;</button>
@@ -725,13 +745,14 @@
     <!-- Modal: Guide / Walkthrough -->
     <div id="modal-guide" class="modal-backdrop hidden">
       <div class="modal-card modal-lg">
+        <div class="modal-drag-handle"></div>
         <div class="modal-header">
-          <h3>📖 Tamaki Studio v4.1.0 完全取扱説明書</h3>
+          <h3>📖 Tamaki Studio v4.1.1 完全取扱説明書</h3>
           <button class="modal-close" id="btn-close-guide-modal">&times;</button>
         </div>
         <div class="modal-body">
           <div class="guide-content" style="font-size: 0.875rem; line-height: 1.7; color: var(--text-primary);">
-            <h4 style="color: var(--text-accent); margin-bottom: 0.5rem;">🔥 v4.1.0 創作コックピット新機能</h4>
+            <h4 style="color: var(--text-accent); margin-bottom: 0.5rem;">🔥 v4.1.1 iPhone 14 Pro 最適化＆創作新機能</h4>
             <ul style="padding-left: 1.25rem; margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; color: var(--text-secondary);">
               <li><strong style="color: var(--text-primary);">🗝️ 『鍵』式・独白交代（デュアル・モノローグ）モード</strong>: 谷崎潤一郎『鍵』にインスパイアされた、男性視点（俺）と女性視点（保江）の心理・企みを2列並列で書き分け、交互に織り成す専用執筆機能。</li>
               <li><strong style="color: var(--text-primary);">🛡️ 官能セーフティ・表現リスク事前検知＆文学的言い換え</strong>: 露骨・過激な単語をローカル検知し、「微熱を帯びた皮膚」「衣擦れの音」など五感・心理描写へワンタップで文学的に昇華。</li>
@@ -767,6 +788,7 @@
     <!-- Modal: Mac ↔ iPhone Cross-Device Sync (Tamaki Sync 3.0) -->
     <div id="modal-mobile-sync" class="modal-backdrop hidden">
       <div class="modal-card modal-card-large">
+        <div class="modal-drag-handle"></div>
         <div class="modal-header">
           <h3>☁️ Mac ↔ iPhone クロスデバイス連続作業同期 (Tamaki Sync 3.0)</h3>
           <button class="modal-close" id="btn-close-mobile-modal">&times;</button>
@@ -907,6 +929,7 @@
     <!-- Modal: Polish Diff & Refinement Studio (v4.0 Core Feature) -->
     <div id="modal-polish-diff" class="modal-backdrop hidden">
       <div class="modal-card modal-card-lg">
+        <div class="modal-drag-handle"></div>
         <div class="modal-header">
           <div class="modal-header-title" style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 1.3rem;">🪄</span>
@@ -950,6 +973,7 @@
     <!-- Modal: Privacy Dictionary Management (v4.1 New Feature) -->
     <div id="modal-privacy-dict" class="modal-backdrop hidden">
       <div class="modal-card modal-card-lg">
+        <div class="modal-drag-handle"></div>
         <div class="modal-header">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 1.3rem;">🎭</span>
@@ -1008,6 +1032,7 @@
     <!-- Modal: Kindle (KDP) Vertical & EPUB Export Studio (v4.1 New Feature) -->
     <div id="modal-kdp-export" class="modal-backdrop hidden">
       <div class="modal-card modal-card-xl">
+        <div class="modal-drag-handle"></div>
         <div class="modal-header">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 1.3rem;">📖</span>
@@ -1080,6 +1105,6 @@
   <div id="toast-message" class="toast hidden">コピーしました！</div>
 
   <script src="qrcode.min.js"></script>
-  <script src="app.js?v=4.1.0"></script>
+  <script src="app.js?v=4.1.1"></script>
 </body>
 </html>
