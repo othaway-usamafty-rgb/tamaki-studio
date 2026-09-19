@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>Tamaki Studio - Lite v1.0.0 | たまきぱずず風 高速執筆工房</title>
+  <meta name="description" content="PC負荷を最小限に抑え、たまきぱずず特有の鋭いメタ認知・宇宙世紀原理主義・大人の分別とオチを完全再現する超軽量執筆スタジオ">
+  <meta name="theme-color" content="#0d1117">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app" class="app-root">
+    <!-- Top Global Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <span class="header-icon">🖋️</span>
+        <div class="header-title-wrap">
+          <h1 class="header-title">Tamaki Studio <span class="badge-lite">Lite v1.0.0</span></h1>
+          <span class="header-subtitle">超軽量・高速執筆工房</span>
+        </div>
+      </div>
+
+      <div class="header-stats">
+        <span class="stat-pill" id="header-char-badge">原稿: <strong id="header-char-count">0</strong> 字</span>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" id="btn-open-history" class="header-btn" title="落書き・下書き履歴">
+          <span class="btn-icon">📜</span><span class="btn-label">履歴</span>
+        </button>
+        <button type="button" id="btn-open-dict" class="header-btn" title="身バレ置換辞書">
+          <span class="btn-icon">🛡️</span><span class="btn-label">身バレ辞書</span>
+        </button>
+        <button type="button" id="btn-open-api" class="header-btn" title="Gemini API設定">
+          <span class="btn-icon">⚙️</span><span class="btn-label">API設定</span>
+        </button>
+        <button type="button" id="btn-open-backup" class="header-btn" title="バックアップと復元">
+          <span class="btn-icon">💾</span><span class="btn-label">バックアップ</span>
+        </button>
+        <a href="../index.html" target="_blank" rel="noopener noreferrer" id="btn-launch-v4" class="header-btn btn-v4-link" title="フル機能版 Tamaki Studio v4.1.1 を開く">
+          <span class="btn-icon">🚀</span><span class="btn-label">フル版(v4.1.1)</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Studio Workspace (Split View) -->
+    <main class="studio-container">
+      <!-- Left Panel: Genre, Detox & Tuning -->
+      <section class="studio-panel panel-left" id="panel-input">
+        <div class="panel-inner">
+          
+          <!-- Genre Selector Tabs -->
+          <div class="genre-selector-wrap">
+            <span class="section-label">執筆ジャンル</span>
+            <div class="genre-tabs" role="tablist">
+              <button type="button" class="genre-tab active" data-genre="essay" role="tab">
+                <span class="genre-icon">📝</span> 日常エッセイ
+              </button>
+              <button type="button" class="genre-tab" data-genre="subculture" role="tab">
+                <span class="genre-icon">🤖</span> ガンダム・論考
+              </button>
+              <button type="button" class="genre-tab" data-genre="novel" role="tab">
+                <span class="genre-icon">📖</span> 小説・官能
+              </button>
+            </div>
+          </div>
+
+          <!-- Detox Scrapbook (便所の落書き・無機質デトックス) -->
+          <div class="card detox-card">
+            <div class="card-header">
+              <div class="card-title-wrap">
+                <span class="badge-detox">🚽 便所の落書き</span>
+                <span class="card-hint">頭のモヤモヤ・感情をそのまま書き殴る</span>
+              </div>
+              <div class="detox-header-meta">
+                <select id="detox-history-dropdown" class="select-history" title="過去の落書き履歴から復元">
+                  <option value="">📜 過去の落書き (0件)...</option>
+                </select>
+                <span class="count-badge" id="detox-char-count">0 字</span>
+              </div>
+            </div>
+
+            <textarea id="detox-input" class="detox-textarea" rows="4" placeholder="パラメータやAIを気にせず、生の感情・違和感・アイデアの断片をそのまま書き殴ってください（自動退避されます）..."></textarea>
+
+            <div class="detox-actions">
+              <span class="detox-send-label">落書きを各ジャンルに転送：</span>
+              <div class="detox-btn-group">
+                <button type="button" id="btn-send-detox-essay" class="btn-send-genre" data-target="essay" title="落書きをエッセイの体験欄へ転送">
+                  📝 エッセイへ送る
+                </button>
+                <button type="button" id="btn-send-detox-subculture" class="btn-send-genre" data-target="subculture" title="落書きをガンダム論考の違和感欄へ転送">
+                  🤖 ガンダム論考へ送る
+                </button>
+                <button type="button" id="btn-send-detox-novel" class="btn-send-genre" data-target="novel" title="落書きを小説のプロット欄へ転送">
+                  📖 小説へ送る
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Genre-specific Input Fields -->
+          <div class="genre-fields-container">
+            <!-- Essay Fields -->
+            <div class="genre-fields" id="fields-essay">
+              <div class="form-group">
+                <label for="essay-theme">テーマ・導入のツカミ <span class="req">*</span></label>
+                <input type="text" id="essay-theme" placeholder="例：酷暑のゴルフ場での熱中症対策と、最新ギアへの散財">
+                <span class="input-hint">読者の意表を突くフックや、日常のふとした違和感</span>
+              </div>
+              <div class="form-group">
+                <label for="essay-experience">実体験・生々しいディテールメモ <span class="req">*</span></label>
+                <textarea id="essay-experience" rows="3" placeholder="・気温38度、前半ハーフで意識朦朧&#10;・氷嚢、ファン付きベスト全部試した&#10;・結局一番効いたのは茶店の冷たい麦茶だった&#10;・格好つけて買ったのにこのザマ"></textarea>
+                <span class="input-hint">試したこと、失敗、具体的な商品名や身体感覚</span>
+              </div>
+              <div class="form-group">
+                <label for="essay-insight">深掘り・構造と本質の考察</label>
+                <textarea id="essay-insight" rows="2" placeholder="道具で解決しようとする現代人の見栄。結局、自然の猛威の前には基本（水分補給と無理しない勇気）しかない。"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="essay-ending">結び・オチのトーン（セルフツッコミ）</label>
+                <input type="text" id="essay-ending" placeholder="例：来週もまた新しい冷却グッズをポチりそう…という自虐で締める">
+              </div>
+            </div>
+
+            <!-- Subculture Fields -->
+            <div class="genre-fields hidden" id="fields-subculture">
+              <div class="form-group">
+                <label for="subculture-target">対象作品・トピック <span class="req">*</span></label>
+                <input type="text" id="subculture-target" placeholder="例：機動戦士ガンダム 全52話打ち切りIF / テキサスコロニー建造計画">
+              </div>
+              <div class="form-group">
+                <label for="subculture-doubts">感じた違和感・本音 / 思考実験 <span class="req">*</span></label>
+                <textarea id="subculture-doubts" rows="3" placeholder="・もし52話まで完走していたら、シャアはア・バオア・クーで戦死してZも逆シャアも消滅していた？&#10;・打ち切られたからこそガンプラブームが生まれ純度が高まった逆説。&#10;・泥とオイルの匂いがする一兵卒視点こそが真髄。"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="subculture-insight">深掘りしたい論点・考察（商業分析・SF技術）</label>
+                <textarea id="subculture-insight" rows="2" placeholder="トミノメモの精査。巨匠がアクシデントを劇薬に変えたドラマ構造とバンダイのビジネスモデル。"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="subculture-ending">結びのトーン</label>
+                <input type="text" id="subculture-ending" placeholder="例：「完全に富野御大の掌の上」「大人しく積みプラのバリでも削る」という老害オタクの自虐着地">
+              </div>
+            </div>
+
+            <!-- Novel Fields -->
+            <div class="genre-fields hidden" id="fields-novel">
+              <div class="form-group">
+                <label for="novel-setting">場面設定・人物関係・視点 <span class="req">*</span></label>
+                <input type="text" id="novel-setting" placeholder="例：深夜のオフィス、終電を逃した上司と部下。雨の音。">
+              </div>
+              <div class="form-group">
+                <label for="novel-flow">感情の揺れ・理性と本能の葛藤・プロット <span class="req">*</span></label>
+                <textarea id="novel-flow" rows="3" placeholder="・書類を渡す指先が一瞬触れる。&#10;・理性では「ここで踏み越えたら終わりだ」と冷徹にブレーキを踏んでいるのに、呼吸の乱れを隠せない。&#10;・沈黙の重さに耐えかねて交わす、意味のない世間話。"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="novel-sensory">官能・心理描写の核（微熱・光と影・匂い・触感）</label>
+                <textarea id="novel-sensory" rows="2" placeholder="湿り気を帯びたエアコンの風、かすかな香水の残り香、蛍光灯の微かなハム音。肌の微熱。"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="novel-ending">結末・余韻の方向性</label>
+                <input type="text" id="novel-ending" placeholder="例：決定的な一線は越えないまま、決定的に関係が変わってしまった苦い朝">
+              </div>
+            </div>
+          </div>
+
+          <!-- Tuning Card (たまきぱずず度 チューニング) -->
+          <div class="card tuning-card">
+            <div class="card-header">
+              <span class="card-title">🎛️ たまきぱずず度 チューニング</span>
+              <button type="button" id="btn-reset-tuning" class="btn-text-xs">初期値に戻す</button>
+            </div>
+
+            <div class="slider-grid">
+              <div class="slider-group">
+                <div class="slider-header">
+                  <label for="slider-tone">文体トーン</label>
+                  <span class="slider-val" id="val-tone">標準 (バランス)</span>
+                </div>
+                <input type="range" id="slider-tone" min="1" max="3" step="1" value="2">
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <label for="slider-meta">メタ認知・自虐</label>
+                  <span class="slider-val" id="val-meta">鋭いメタ認知</span>
+                </div>
+                <input type="range" id="slider-meta" min="1" max="3" step="1" value="3">
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <label for="slider-turbulence">思考の迷走プロセス</label>
+                  <span class="slider-val" id="val-turbulence">二転三転 (思考実験)</span>
+                </div>
+                <input type="range" id="slider-turbulence" min="1" max="3" step="1" value="3">
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <label for="slider-detail">ディテール解像度</label>
+                  <span class="slider-val" id="val-detail">生々しい固有名詞</span>
+                </div>
+                <input type="range" id="slider-detail" min="1" max="3" step="1" value="3">
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <label for="slider-tempo">文体テンポ</label>
+                  <span class="slider-val" id="val-tempo">テンポ軽快</span>
+                </div>
+                <input type="range" id="slider-tempo" min="1" max="2" step="1" value="2">
+              </div>
+            </div>
+
+            <div class="tuning-toggles">
+              <label class="toggle-wrap">
+                <input type="checkbox" id="toggle-anti-ai" checked>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">🚫 AI臭さ・綺麗事の完全排除</span>
+              </label>
+              <label class="toggle-wrap">
+                <input type="checkbox" id="toggle-delusion">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">🚀 妄想・思考実験の飛躍</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Main Action: 筆者風たたき台を作る -->
+          <div class="main-action-wrap">
+            <button type="button" id="btn-generate-draft" class="btn-primary-action">
+              <span class="btn-action-icon">⚡</span>
+              <span class="btn-action-text">筆者風たたき台を作る</span>
+            </button>
+            <div class="action-sub-hint" id="action-hint-text">
+              ※ Gemini API設定時は直接AI生成、未設定時はプロンプト生成＆自動コピー
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Right Panel: Two-tiered Studio (たたき台エリア ＆ 執筆エリア) -->
+      <section class="studio-panel panel-right" id="panel-editor">
+        
+        <!-- Top Half: たたき台エリア (AI Draft / Prompt Output) -->
+        <div class="editor-block block-draft">
+          <div class="editor-header">
+            <div class="editor-title-group">
+              <span class="editor-badge badge-draft">⚡ たたき台エリア</span>
+              <span class="editor-subtitle">AI生成ドラフト・プロンプト出力</span>
+            </div>
+            <div class="editor-tools">
+              <button type="button" id="btn-copy-draft" class="tool-btn" title="たたき台をコピー">
+                📋 コピー
+              </button>
+              <button type="button" id="btn-inject-to-writing" class="tool-btn btn-highlight" title="たたき台を執筆エリアの末尾に挿入">
+                ⬇️ 執筆エリアに流し込む
+              </button>
+              <button type="button" id="btn-replace-writing" class="tool-btn" title="執筆エリアをたたき台の内容で全置換">
+                🔄 全文置換
+              </button>
+              <button type="button" id="btn-clear-draft" class="tool-btn tool-btn-danger" title="たたき台をクリア">
+                🧹 クリア
+              </button>
+            </div>
+          </div>
+          <div class="editor-body">
+            <textarea id="draft-output" class="studio-editor-textarea draft-area" placeholder="「⚡ 筆者風たたき台を作る」を実行すると、ここにドラフトまたは構築されたプロンプトが出力されます...&#10;&#10;出力後は「⬇️ 執筆エリアに流し込む」ボタンを押して下の執筆エリアで自由に肉付け・清書を進められます。"></textarea>
+          </div>
+        </div>
+
+        <!-- Bottom Half: 執筆エリア (Main Writing Canvas) -->
+        <div class="editor-block block-writing">
+          <div class="editor-header">
+            <div class="editor-title-group">
+              <span class="editor-badge badge-writing">📝 執筆・清書エリア</span>
+              <div class="char-metrics">
+                <span class="metric-item"><strong id="writing-char-count">0</strong> 文字</span>
+                <span class="metric-sep">|</span>
+                <span class="metric-item">読了目安: 約 <strong id="writing-read-time">0</strong> 分</span>
+              </div>
+            </div>
+            <div class="editor-tools">
+              <!-- New feature: 原稿から推敲用プロンプトを作成 -->
+              <button type="button" id="btn-make-proofread-prompt" class="tool-btn btn-proofread" title="執筆中の原稿を元に、たまきぱずず風推敲プロンプトを自動生成">
+                🎯 原稿から推敲用プロンプトを作成
+              </button>
+              <button type="button" id="btn-anonymize-dict" class="tool-btn" title="身バレ辞書を使って特定固有名詞を自動匿名化">
+                🛡️ 匿名化
+              </button>
+              <button type="button" id="btn-download-md" class="tool-btn" title="原稿をMarkdownファイルとして保存">
+                📄 .md保存
+              </button>
+              <button type="button" id="btn-copy-writing" class="tool-btn" title="原稿全文をクリップボードにコピー">
+                📋 全文コピー
+              </button>
+              <button type="button" id="btn-clear-writing" class="tool-btn tool-btn-danger" title="執筆エリアをクリア">
+                🧹 クリア
+              </button>
+            </div>
+          </div>
+          <div class="editor-body">
+            <textarea id="writing-canvas" class="studio-editor-textarea writing-area" placeholder="ここに清書・執筆を進めてください。&#10;&#10;上のたたき台を参考にしながら自分の言葉で書き直したり、執筆後に「🎯 原稿から推敲用プロンプトを作成」を押して更なるブラッシュアップを行えます。"></textarea>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- Mobile Quick Writing Assist Bar (iPhone 14 Pro対応) -->
+    <div class="quick-assist-bar" id="quick-assist-bar">
+      <div class="assist-scroll">
+        <button type="button" class="assist-key" data-insert="……">……</button>
+        <button type="button" class="assist-key" data-insert="――">――</button>
+        <button type="button" class="assist-key" data-wrap="「" data-wrap-end="」">「」</button>
+        <button type="button" class="assist-key" data-wrap="『" data-wrap-end="』">『』</button>
+        <button type="button" class="assist-key" data-wrap="｜" data-wrap-end="《》">ルビ</button>
+        <button type="button" class="assist-key assist-action" id="btn-assist-copy">📋 コピー</button>
+        <button type="button" class="assist-key assist-action" id="btn-assist-proofread">🎯 推敲作成</button>
+        <button type="button" class="assist-key assist-action" id="btn-assist-undo">↩ 戻す</button>
+      </div>
+    </div>
+
+    <!-- iPhone 14 Pro Thumb-Zone Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+      <button type="button" class="nav-tab active" data-target-panel="input">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">入力・落書き</span>
+      </button>
+      <button type="button" class="nav-tab" data-target-panel="draft">
+        <span class="nav-icon">⚡</span>
+        <span class="nav-text">たたき台</span>
+      </button>
+      <button type="button" class="nav-tab" data-target-panel="writing">
+        <span class="nav-icon">📝</span>
+        <span class="nav-text">執筆・清書</span>
+      </button>
+    </nav>
+
+    <!-- Modals (iOS Bottom Sheet Style) -->
+
+    <!-- 1. History Modal -->
+    <div class="modal-overlay hidden" id="modal-history">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h2 class="modal-title">📜 落書き・下書き履歴</h2>
+          <button type="button" class="modal-close" data-close-modal>&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="history-tabs">
+            <button type="button" class="history-tab active" id="tab-hist-detox">🚽 便所の落書き履歴</button>
+            <button type="button" class="history-tab" id="tab-hist-writing">📝 執筆原稿のスナップショット</button>
+          </div>
+          <div class="history-list" id="history-list-content">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btn-save-current-snapshot" class="btn-secondary">💾 現在の原稿をスナップショット保存</button>
+          <button type="button" id="btn-clear-all-history" class="btn-danger-outline">履歴全消去</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Privacy Dictionary Modal (身バレ辞書) -->
+    <div class="modal-overlay hidden" id="modal-dict">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h2 class="modal-title">🛡️ 身バレ置換辞書（匿名化）</h2>
+          <button type="button" class="modal-close" data-close-modal>&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            実名や実在の施設名、愛車名などをフィクション表現に一括置換して特定を防ぎます。
+          </p>
+          <div class="dict-add-form">
+            <input type="text" id="dict-input-pattern" placeholder="置換前（例：マークIIプレミオ）">
+            <input type="text" id="dict-input-replacement" placeholder="置換後（例：90年代の国産セダン）">
+            <button type="button" id="btn-add-dict-entry" class="btn-secondary">追加</button>
+          </div>
+          <div class="dict-table-wrap">
+            <table class="dict-table">
+              <thead>
+                <tr>
+                  <th>置換前（検知語）</th>
+                  <th>置換後（フィクション表現）</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="dict-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btn-exec-dict-replace" class="btn-primary">
+            🛡️ 執筆エリアの原稿を一括匿名化
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. API Settings Modal -->
+    <div class="modal-overlay hidden" id="modal-api">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h2 class="modal-title">⚙️ Gemini API設定</h2>
+          <button type="button" class="modal-close" data-close-modal>&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Google AI StudioのGemini APIキーを設定すると、「⚡ 筆者風たたき台を作る」や「推敲実行」をスタジオ内で直接ストリーミング生成できます。（キーはブラウザ内LocalStorageにのみ安全に保存されます）
+          </p>
+          <div class="form-group">
+            <label for="api-key-input">Gemini API Key</label>
+            <input type="password" id="api-key-input" placeholder="AIzaSy...">
+          </div>
+          <div class="form-group">
+            <label for="api-model-select">使用モデル</label>
+            <select id="api-model-select" class="form-select">
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash (超高速・おすすめ)</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro (超高知能・長文向け)</option>
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btn-save-api-key" class="btn-primary">保存する</button>
+          <button type="button" id="btn-remove-api-key" class="btn-danger-outline">キー削除</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Backup Modal -->
+    <div class="modal-overlay hidden" id="modal-backup">
+      <div class="modal-sheet">
+        <div class="modal-sheet-handle"></div>
+        <div class="modal-header">
+          <h2 class="modal-title">💾 バックアップと復元</h2>
+          <button type="button" class="modal-close" data-close-modal>&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Tamaki Studio-Liteの全データ（原稿、たたき台、落書き履歴、チューニング設定、辞書）をJSONファイルとして書き出し・読み込みします。
+          </p>
+          <div class="backup-actions-grid">
+            <div class="backup-card">
+              <h3>📥 バックアップを保存</h3>
+              <p>現在の全作業状態をJSONファイルとしてダウンロードします。</p>
+              <button type="button" id="btn-export-backup-json" class="btn-secondary">
+                JSONファイルを書き出し
+              </button>
+            </div>
+            <div class="backup-card">
+              <h3>📤 バックアップから復元</h3>
+              <p>保存したJSONファイルを選択して元の状態に完全復元します。</p>
+              <input type="file" id="backup-file-input" accept=".json" style="display: none;">
+              <button type="button" id="btn-trigger-import-json" class="btn-secondary">
+                JSONファイルを選択して復元
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-close-modal>閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loading-overlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text" id="loading-text">筆者風たたき台を生成中...</div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast hidden" id="toast-message" role="status" aria-live="polite"></div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
