@@ -25,8 +25,8 @@
     DETOX_HISTORY: 'tamaki_lite_detox_history',
     WRITING_SNAPSHOTS: 'tamaki_lite_snapshots',
     TUNING: 'tamaki_lite_tuning',
-    API_KEY: 'tamaki_lite_gemini_api_key',
-    API_MODEL: 'tamaki_lite_api_model',
+    API_KEY: 'tamaki_gemini_api_key',
+    API_MODEL: 'tamaki_gemini_model',
     CUSTOM_DICT: 'tamaki_lite_custom_dict',
     DRAFT_CONTENT: 'tamaki_lite_draft_content',
     WRITING_CONTENT: 'tamaki_lite_writing_content',
@@ -174,11 +174,27 @@
   const dictTableBody = document.getElementById('dict-table-body');
   const btnExecDictReplace = document.getElementById('btn-exec-dict-replace');
 
-  // API Modal Elements
+  // API Modal Elements & Standalone Card Elements
   const apiKeyInput = document.getElementById('api-key-input');
   const apiModelSelect = document.getElementById('api-model-select');
+  const btnFetchModels = document.getElementById('btn-fetch-models');
+  const modelFetchStatus = document.getElementById('model-fetch-status');
   const btnSaveApiKey = document.getElementById('btn-save-api-key');
   const btnRemoveApiKey = document.getElementById('btn-remove-api-key');
+
+  // Standalone API Card Elements (Left Panel)
+  const cardApiStandalone = document.getElementById('card-api-standalone');
+  const headerApiToggle = document.getElementById('header-api-toggle');
+  const btnToggleApiCard = document.getElementById('btn-toggle-api-card');
+  const apiCardContent = document.getElementById('api-card-content');
+  const apiStatusBadge = document.getElementById('api-status-badge');
+  const quickApiKey = document.getElementById('quick-api-key');
+  const quickApiModel = document.getElementById('quick-api-model');
+  const btnQuickFetchModels = document.getElementById('btn-quick-fetch-models');
+  const quickModelStatus = document.getElementById('quick-model-status');
+  const btnQuickSaveApi = document.getElementById('btn-quick-save-api');
+  const btnQuickRemoveApi = document.getElementById('btn-quick-remove-api');
+  const actionHintText = document.getElementById('action-hint-text');
 
   // Backup Modal Elements
   const btnExportBackupJson = document.getElementById('btn-export-backup-json');
@@ -298,6 +314,7 @@
       if (novelEnding) novelEnding.value = novelData.ending || '';
 
       updateCharCounts();
+      syncApiStateToUI();
     } catch (e) {
       console.warn('Error loading storage:', e);
     }
@@ -1105,29 +1122,170 @@ ${text}
   }
 
   // =========================================================================
-  // 14. API Settings Modal
+  // 14. Standalone & Modal API Settings Engine (v4.1.1準拠)
   // =========================================================================
+  function syncApiStateToUI() {
+    const key = state.apiKey;
+    const model = state.apiModel;
+
+    if (apiKeyInput) apiKeyInput.value = key;
+    if (quickApiKey) quickApiKey.value = key;
+    if (apiModelSelect) apiModelSelect.value = model;
+    if (quickApiModel) quickApiModel.value = model;
+
+    if (apiStatusBadge) {
+      if (key) {
+        apiStatusBadge.textContent = `🟢 連携完了 (${model})`;
+        apiStatusBadge.style.color = 'var(--accent-green)';
+      } else {
+        apiStatusBadge.textContent = '未設定（プロンプト生成モード）';
+        apiStatusBadge.style.color = 'var(--text-subtle)';
+      }
+    }
+
+    if (actionHintText) {
+      if (key) {
+        actionHintText.textContent = `⚡ Gemini直接AI生成モード (モデル: ${model})`;
+        actionHintText.style.color = 'var(--accent-cyan)';
+      } else {
+        actionHintText.textContent = '※ Gemini API設定時は直接AI生成、未設定時はプロンプト生成＆自動コピー';
+        actionHintText.style.color = 'var(--text-subtle)';
+      }
+    }
+  }
+
+  // Toggle standalone API card in left panel
+  if (headerApiToggle) {
+    headerApiToggle.addEventListener('click', () => {
+      if (!apiCardContent) return;
+      const isHidden = apiCardContent.classList.contains('hidden');
+      apiCardContent.classList.toggle('hidden', !isHidden);
+      if (btnToggleApiCard) {
+        btnToggleApiCard.textContent = isHidden ? '閉じる ▴' : '開く ▾';
+      }
+    });
+  }
+
+  // Fetch Available Models from Google AI Studio
+  async function fetchAvailableModels(key, statusEl) {
+    if (!key) {
+      alert('先にAPIキーを入力してください');
+      return;
+    }
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.textContent = '利用可能モデル一覧を取得中...';
+      statusEl.style.color = 'var(--accent-cyan)';
+    }
+
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'モデルの取得に失敗しました');
+
+      const textModels = (data.models || []).filter(m => 
+        m.supportedGenerationMethods?.includes('generateContent') &&
+        !m.name.includes('embedding') &&
+        !m.name.includes('aqa') &&
+        !m.name.includes('tts') &&
+        !m.name.includes('audio')
+      );
+
+      if (textModels.length === 0) throw new Error('使用可能なテキスト生成モデルが見つかりませんでした');
+
+      [apiModelSelect, quickApiModel].forEach(sel => {
+        if (!sel) return;
+        sel.innerHTML = '';
+        textModels.forEach(m => {
+          const id = m.name.replace('models/', '');
+          const opt = document.createElement('option');
+          opt.value = id;
+          opt.textContent = `${m.displayName || id} (${id})`;
+          sel.appendChild(opt);
+        });
+      });
+
+      const preferred = textModels.find(m => m.name.includes('gemini-2.5-flash')) ||
+                        textModels.find(m => m.name.includes('gemini-1.5-flash-latest')) ||
+                        textModels[0];
+      const preferredId = preferred.name.replace('models/', '');
+      state.apiModel = preferredId;
+      if (apiModelSelect) apiModelSelect.value = preferredId;
+      if (quickApiModel) quickApiModel.value = preferredId;
+      localStorage.setItem(STORAGE_KEYS.API_MODEL, preferredId);
+
+      if (statusEl) {
+        statusEl.textContent = `✅ ${textModels.length}件の利用可能モデルを取得しました！`;
+        statusEl.style.color = 'var(--accent-green)';
+      }
+      showToast(`🔍 ${textModels.length}件のモデル一覧を取得しました`);
+    } catch (err) {
+      if (statusEl) {
+        statusEl.textContent = `❌ エラー: ${err.message}`;
+        statusEl.style.color = 'var(--accent-danger)';
+      }
+      showToast(`モデル取得失敗: ${err.message}`);
+    }
+  }
+
+  if (btnFetchModels) {
+    btnFetchModels.addEventListener('click', () => {
+      const key = apiKeyInput ? apiKeyInput.value.trim() : '';
+      fetchAvailableModels(key, modelFetchStatus);
+    });
+  }
+
+  if (btnQuickFetchModels) {
+    btnQuickFetchModels.addEventListener('click', () => {
+      const key = quickApiKey ? quickApiKey.value.trim() : '';
+      fetchAvailableModels(key, quickModelStatus);
+    });
+  }
+
+  // Save API Settings
+  function saveApiSettings(key, model) {
+    state.apiKey = key;
+    state.apiModel = model;
+    localStorage.setItem(STORAGE_KEYS.API_KEY, key);
+    localStorage.setItem(STORAGE_KEYS.API_MODEL, model);
+    syncApiStateToUI();
+    closeAllModals();
+    showToast(key ? `⚙️ API連携を保存しました (${model})` : 'APIキーを未設定にしました');
+  }
+
+  // Remove API Key
+  function removeApiKey() {
+    state.apiKey = '';
+    localStorage.removeItem(STORAGE_KEYS.API_KEY);
+    syncApiStateToUI();
+    closeAllModals();
+    showToast('APIキーを削除しました（プロンプト生成モードに移行）');
+  }
+
+  // Modal Handlers
   if (btnSaveApiKey) {
     btnSaveApiKey.addEventListener('click', () => {
       const key = apiKeyInput ? apiKeyInput.value.trim() : '';
       const model = apiModelSelect ? apiModelSelect.value : 'gemini-2.5-flash';
-      state.apiKey = key;
-      state.apiModel = model;
-      localStorage.setItem(STORAGE_KEYS.API_KEY, key);
-      localStorage.setItem(STORAGE_KEYS.API_MODEL, model);
-      closeAllModals();
-      showToast(key ? '⚙️ Gemini API設定を保存しました' : 'APIキーを未設定にしました');
+      saveApiSettings(key, model);
     });
   }
 
   if (btnRemoveApiKey) {
-    btnRemoveApiKey.addEventListener('click', () => {
-      state.apiKey = '';
-      if (apiKeyInput) apiKeyInput.value = '';
-      localStorage.removeItem(STORAGE_KEYS.API_KEY);
-      closeAllModals();
-      showToast('APIキーを削除しました');
+    btnRemoveApiKey.addEventListener('click', removeApiKey);
+  }
+
+  // Standalone Card Handlers
+  if (btnQuickSaveApi) {
+    btnQuickSaveApi.addEventListener('click', () => {
+      const key = quickApiKey ? quickApiKey.value.trim() : '';
+      const model = quickApiModel ? quickApiModel.value : 'gemini-2.5-flash';
+      saveApiSettings(key, model);
     });
+  }
+
+  if (btnQuickRemoveApi) {
+    btnQuickRemoveApi.addEventListener('click', removeApiKey);
   }
 
   // =========================================================================
@@ -1285,8 +1443,7 @@ ${text}
 
   if (btnOpenApi) {
     btnOpenApi.addEventListener('click', () => {
-      if (apiKeyInput) apiKeyInput.value = state.apiKey;
-      if (apiModelSelect) apiModelSelect.value = state.apiModel;
+      syncApiStateToUI();
       openModal(modalApi);
     });
   }

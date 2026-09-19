@@ -631,6 +631,24 @@ input[type="range"]::-webkit-slider-thumb:hover {
   text-align: center;
 }
 
+/* Standalone API Card */
+.api-standalone-card {
+  border-color: rgba(6, 182, 212, 0.2);
+  background: linear-gradient(180deg, rgba(6, 182, 212, 0.04) 0%, var(--bg-card) 100%);
+}
+
+.api-standalone-card .card-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.api-card-content {
+  border-top: 1px solid var(--border-color);
+  padding-top: 10px;
+}
+
+
 /* ==========================================================================
    Right Panel: Split Studio (Draft & Writing)
    ========================================================================== */
